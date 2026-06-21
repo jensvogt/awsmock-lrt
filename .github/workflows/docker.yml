@@ -125,7 +125,7 @@ jobs:
           - runtime: nodejs24
             dockerfile: docker/Dockerfile.nodejs24
           - runtime: python312
-            dockerfile: docker/Dockerfile.python
+            dockerfile: docker/Dockerfile.python312
           - runtime: provided
             dockerfile: docker/Dockerfile.provided
 
