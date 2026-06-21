@@ -24,7 +24,7 @@ RUN git clone https://github.com/jensvogt/awsmock.git awsmock && \
 RUN cmake -B awsmock/cmake-build-release -S awsmock \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_TOOLCHAIN_FILE=/build/vcpkg/scripts/buildsystems/vcpkg.cmake \
-        -DVCPKG_BUILD_TYPE=release \
+        -DVCPKG_TARGET_TRIPLET=x64-linux-release \
         -DBUILD_TESTING=OFF \
         -G Ninja && \
     cmake --build awsmock/cmake-build-release \
@@ -38,6 +38,6 @@ RUN cp awsmock/cmake-build-release/libawsmockcore.a awsmock-lrt/lib/ && \
 
 RUN cmake -B awsmock-lrt/cmake-build-release -S awsmock-lrt \
         -DCMAKE_BUILD_TYPE=Release \
-        -DAWSMOCK_VCPKG_DIR=/build/awsmock/cmake-build-release/vcpkg_installed/x64-linux \
+        -DAWSMOCK_VCPKG_DIR=/build/awsmock/cmake-build-release/vcpkg_installed/x64-linux-release \
         -G Ninja && \
     cmake --build awsmock-lrt/cmake-build-release --parallel
