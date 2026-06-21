@@ -9,7 +9,7 @@
 #include <string>
 
 // Awsmock includes
-#include <awsmock/lrt/GammaProcessRuntime.h>
+#include <awsmock/lrt/LambdaProcessRuntime.h>
 
 namespace Awsmock::Lrt {
 
@@ -23,7 +23,7 @@ namespace Awsmock::Lrt {
      * Handler format: "index.handler"  (fileName.exportedFunction)
      * Code path:      directory containing the unpacked Lambda zip
      */
-    class GammaNodeRuntime final : public GammaProcessRuntime {
+    class LambdaNodeRuntime final : public LambdaProcessRuntime {
       public:
 
         /**
@@ -32,12 +32,12 @@ namespace Awsmock::Lrt {
          * @param envVars        environment variables to set in the Node process
          * @param nodeExecutable path or name of the node binary (default: "node")
          */
-        GammaNodeRuntime(const std::string &codePath,
+        LambdaNodeRuntime(const std::string &codePath,
                          const std::string &handler,
                          const std::map<std::string, std::string> &envVars = {},
                          const std::string &nodeExecutable = "node");
 
-        ~GammaNodeRuntime() override;
+        ~LambdaNodeRuntime() override;
 
       private:
 

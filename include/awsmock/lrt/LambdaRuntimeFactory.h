@@ -14,10 +14,10 @@
 
 // Awsmock includes
 #include <awsmock/lrt/LambdaCppRuntime.h>
-#include <awsmock/lrt/GammaJvmRuntime.h>
-#include <awsmock/lrt/GammaNodeRuntime.h>
-#include <awsmock/lrt/GammaPythonRuntime.h>
-#include <awsmock/lrt/IGammaRuntime.h>
+#include <awsmock/lrt/LambdaJvmRuntime.h>
+#include <awsmock/lrt/LambdaNodeRuntime.h>
+#include <awsmock/lrt/LambdaPythonRuntime.h>
+#include <awsmock/lrt/ILambdaRuntime.h>
 
 namespace Awsmock::Lrt {
 
@@ -43,7 +43,7 @@ namespace Awsmock::Lrt {
     };
 
     /**
-     * @brief Creates the appropriate IGammaRuntime for the given AWS runtime identifier.
+     * @brief Creates the appropriate ILambdaRuntime for the given AWS runtime identifier.
      *
      * Supported runtime strings (case-insensitive):
      *   Java:   java8, java11, java17, java21, java25
@@ -51,25 +51,25 @@ namespace Awsmock::Lrt {
      *   Python: python3.9, python3.10, python3.11, python3.12, python3.13
      *   C++:    provided, provided.al2, provided.al2023
      */
-    class GammaRuntimeFactory {
+    class LambdaRuntimeFactory {
       public:
 
-        static std::unique_ptr<IGammaRuntime> create(const std::string &runtime, const RuntimeParams &p) {
+        static std::unique_ptr<ILambdaRuntime> create(const std::string &runtime, const RuntimeParams &p) {
             const std::string rt = toLower(runtime);
 
             if (rt == "java8" || rt == "java8.al2" || rt == "java11" ||
                 rt == "java17" || rt == "java21" || rt == "java25")
-                return std::make_unique<GammaJvmRuntime>(p.codePath, p.handler, p.envVars, p.jvmArgs, p.runtimeJars);
+                return std::make_unique<LambdaJvmRuntime>(p.codePath, p.handler, p.envVars, p.jvmArgs, p.runtimeJars);
 
             if (rt == "nodejs18.x" || rt == "nodejs20.x" || rt == "nodejs22.x")
-                return std::make_unique<GammaNodeRuntime>(p.codePath, p.handler, p.envVars, p.nodeExecutable);
+                return std::make_unique<LambdaNodeRuntime>(p.codePath, p.handler, p.envVars, p.nodeExecutable);
 
             if (rt == "python3.9" || rt == "python3.10" || rt == "python3.11" ||
                 rt == "python3.12" || rt == "python3.13")
-                return std::make_unique<GammaPythonRuntime>(p.codePath, p.handler, p.envVars, p.pythonExecutable);
+                return std::make_unique<LambdaPythonRuntime>(p.codePath, p.handler, p.envVars, p.pythonExecutable);
 
             if (rt == "provided" || rt == "provided.al2" || rt == "provided.al2023")
-                return std::make_unique<GammaCppRuntime>(p.codePath, p.handler, p.envVars);
+                return std::make_unique<LambdaCppRuntime>(p.codePath, p.handler, p.envVars);
 
             throw std::runtime_error("Unsupported runtime: " + runtime);
         }

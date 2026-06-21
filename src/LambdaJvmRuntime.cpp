@@ -4,13 +4,13 @@
 
 #include <chrono>
 
-#include <awsmock/lrt/GammaJvmRuntime.h>
+#include <awsmock/lrt/LambdaJvmRuntime.h>
 
 #include "awsmock/core/SystemUtils.h"
 
 namespace Awsmock::Lrt {
 
-    GammaJvmRuntime::GammaJvmRuntime(const std::string &jarPath, const std::string &handler, const std::map<std::string, std::string> &envVars, const std::vector<std::string> &jvmArgs, const std::vector<std::string> &runtimeJars) {
+    LambdaJvmRuntime::LambdaJvmRuntime(const std::string &jarPath, const std::string &handler, const std::map<std::string, std::string> &envVars, const std::vector<std::string> &jvmArgs, const std::vector<std::string> &runtimeJars) {
 
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
@@ -110,7 +110,7 @@ namespace Awsmock::Lrt {
 
     // ── invoke ────────────────────────────────────────────────────────────────────
 
-    std::string GammaJvmRuntime::invoke(const std::string &eventJson) {
+    std::string LambdaJvmRuntime::invoke(const std::string &eventJson) {
         _status.runtimeStatus = RuntimeStatus::running;
         JNIEnv *env = getEnv();
         std::string result;
@@ -127,7 +127,7 @@ namespace Awsmock::Lrt {
         return result;
     }
 
-    std::string GammaJvmRuntime::invokeStringFunction(JNIEnv *env, const std::string &eventJson) {
+    std::string LambdaJvmRuntime::invokeStringFunction(JNIEnv *env, const std::string &eventJson) {
         jstring jEvent = env->NewStringUTF(eventJson.c_str());
         auto jResult = reinterpret_cast<jstring>(
                 env->CallObjectMethod(_handlerInstance, _handleMethod, jEvent));
@@ -139,7 +139,7 @@ namespace Awsmock::Lrt {
         return result;
     }
 
-    std::string GammaJvmRuntime::invokeStreamHandler(JNIEnv *env, const std::string &eventJson) {
+    std::string LambdaJvmRuntime::invokeStreamHandler(JNIEnv *env, const std::string &eventJson) {
         // Build byte[] from event JSON
         const auto len = static_cast<jsize>(eventJson.size());
         const auto jBytes = env->NewByteArray(len);
@@ -172,7 +172,7 @@ namespace Awsmock::Lrt {
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
-    GammaJvmRuntime::~GammaJvmRuntime() {
+    LambdaJvmRuntime::~LambdaJvmRuntime() {
         if (_env) {
             if (_handlerInstance) _env->DeleteGlobalRef(_handlerInstance);
             if (_handlerClass) _env->DeleteGlobalRef(_handlerClass);
@@ -183,7 +183,7 @@ namespace Awsmock::Lrt {
         if (_jvm) _jvm->DestroyJavaVM();
     }
 
-    void GammaJvmRuntime::shutdown() {
+    void LambdaJvmRuntime::shutdown() {
         if (!_jvm || !_env) return;
 
         // System.exit(0): runs Java shutdown hooks, stops non-daemon threads, then
@@ -200,7 +200,7 @@ namespace Awsmock::Lrt {
         log_info << "JVM shutdown complete";
     }
 
-    void GammaJvmRuntime::parseHandler(const std::string &handler) {
+    void LambdaJvmRuntime::parseHandler(const std::string &handler) {
         const auto sep = handler.rfind("::");
         if (sep == std::string::npos)
             throw std::runtime_error("Handler must be ClassName::methodName");
@@ -212,7 +212,7 @@ namespace Awsmock::Lrt {
         _className = cls;
     }
 
-    JNIEnv *GammaJvmRuntime::getEnv() {
+    JNIEnv *LambdaJvmRuntime::getEnv() {
         JNIEnv *env = nullptr;
         const jint rc = _jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_8);
         if (rc == JNI_EDETACHED) {
@@ -227,7 +227,7 @@ namespace Awsmock::Lrt {
         return env;
     }
 
-    void GammaJvmRuntime::checkException(JNIEnv *env) {
+    void LambdaJvmRuntime::checkException(JNIEnv *env) {
         if (env->ExceptionCheck()) {
             env->ExceptionDescribe();
             env->ExceptionClear();
@@ -236,7 +236,7 @@ namespace Awsmock::Lrt {
         }
     }
 
-    void GammaJvmRuntime::setSystemClassLoader(JNIEnv *env) {
+    void LambdaJvmRuntime::setSystemClassLoader(JNIEnv *env) {
         const jclass threadCls = env->FindClass("java/lang/Thread");
         const jclass clCls = env->FindClass("java/lang/ClassLoader");
         const jmethodID curThreadMid = env->GetStaticMethodID(threadCls, "currentThread", "()Ljava/lang/Thread;");

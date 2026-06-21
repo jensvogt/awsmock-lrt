@@ -8,11 +8,11 @@
 #include <awsmock/core/JsonUtils.h>
 #include <awsmock/core/config/Configuration.h>
 #include <awsmock/dto/common/BaseObject.h>
-#include <awsmock/dto/gamma/model/RuntimeStatus.h>
+#include <awsmock/dto/lambda/model/RuntimeStatus.h>
 
-namespace Awsmock::Dto::Gamma {
+namespace Awsmock::Dto::Lambda {
 
-    struct GammaStatus : Common::BaseObject<GammaStatus> {
+    struct LambdaStatus : Common::BaseObject<LambdaStatus> {
 
         /**
          * @brief Runtime status
@@ -46,8 +46,8 @@ namespace Awsmock::Dto::Gamma {
 
       private:
 
-        friend GammaStatus tag_invoke(boost::json::value_to_tag<GammaStatus>, boost::json::value const &v) {
-            GammaStatus r;
+        friend LambdaStatus tag_invoke(boost::json::value_to_tag<LambdaStatus>, boost::json::value const &v) {
+            LambdaStatus r;
             r.runtimeStatus = runtimeStatusFromString(Core::Json::GetStringValue(v, "runtimeStatus"));
             r.pid = Core::Json::GetIntValue(v, "pid");
             r.invocations = Core::Json::GetIntValue(v, "invocations");
@@ -57,7 +57,7 @@ namespace Awsmock::Dto::Gamma {
             return r;
         }
 
-        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &jv, GammaStatus const &obj) {
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &jv, LambdaStatus const &obj) {
             jv = {
                     {"runtimeStatus", runtimeStatusToString(obj.runtimeStatus)},
                     {"pid", obj.pid},
@@ -68,4 +68,4 @@ namespace Awsmock::Dto::Gamma {
             };
         }
     };
-}// namespace Awsmock::Dto::Gamma
+}// namespace Awsmock::Dto::Lambda

@@ -9,7 +9,7 @@
 #include <string>
 
 // Awsmock includes
-#include <awsmock/lrt/GammaProcessRuntime.h>
+#include <awsmock/lrt/LambdaProcessRuntime.h>
 
 namespace Awsmock::Lrt {
 
@@ -23,7 +23,7 @@ namespace Awsmock::Lrt {
      * Handler format: "lambda_function.lambda_handler"  (module.function)
      * Code path:      directory containing the unpacked Lambda zip
      */
-    class GammaPythonRuntime final : public GammaProcessRuntime {
+    class LambdaPythonRuntime final : public LambdaProcessRuntime {
       public:
 
         /**
@@ -32,12 +32,12 @@ namespace Awsmock::Lrt {
          * @param envVars            environment variables to set in the Python process
          * @param pythonExecutable   path or name of the python binary (default: "python3")
          */
-        GammaPythonRuntime(const std::string &codePath,
+        LambdaPythonRuntime(const std::string &codePath,
                            const std::string &handler,
                            const std::map<std::string, std::string> &envVars = {},
                            const std::string &pythonExecutable = "python3");
 
-        ~GammaPythonRuntime() override;
+        ~LambdaPythonRuntime() override;
 
       private:
 

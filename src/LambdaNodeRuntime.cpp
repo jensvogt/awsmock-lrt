@@ -2,7 +2,7 @@
 // Created by vogje01 on 6/21/26.
 //
 
-#include <awsmock/lrt/GammaNodeRuntime.h>
+#include <awsmock/lrt/LambdaNodeRuntime.h>
 
 // C++ includes
 #include <fstream>
@@ -52,7 +52,7 @@ process.stdin.on('data', chunk => {
 process.stdin.on('end', () => process.exit(0));
 )JS";
 
-    GammaNodeRuntime::GammaNodeRuntime(const std::string &codePath,
+    LambdaNodeRuntime::LambdaNodeRuntime(const std::string &codePath,
                                        const std::string &handler,
                                        const std::map<std::string, std::string> &envVars,
                                        const std::string &nodeExecutable) {
@@ -62,12 +62,12 @@ process.stdin.on('end', () => process.exit(0));
         log_info << "Node.js runtime started, handler: " << handler << ", code: " << codePath;
     }
 
-    GammaNodeRuntime::~GammaNodeRuntime() {
+    LambdaNodeRuntime::~LambdaNodeRuntime() {
         if (!_shimPath.empty())
             ::unlink(_shimPath.c_str());
     }
 
-    void GammaNodeRuntime::writeShim(const std::string & /*codePath*/, const std::string & /*handler*/) {
+    void LambdaNodeRuntime::writeShim(const std::string & /*codePath*/, const std::string & /*handler*/) {
         std::ofstream f(_shimPath);
         if (!f)
             throw std::runtime_error("Cannot write Node.js shim to " + _shimPath);

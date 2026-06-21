@@ -6,7 +6,7 @@
 
 namespace Awsmock::Lrt {
 
-    HttpHandler::HttpHandler(HttpServer &server, IGammaRuntime &runtime, const Dto::Gamma::GammaConfig &config) : _server(server), _runtime(runtime), _config(config) {}
+    HttpHandler::HttpHandler(HttpServer &server, ILambdaRuntime &runtime, const Dto::Lambda::LambdaConfig &config) : _server(server), _runtime(runtime), _config(config) {}
 
     void HttpHandler::registerRoutes() {
         _server.addRoute(http::verb::get, "/", [this](const Request &req) { return handleGet(req); });

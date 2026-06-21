@@ -12,7 +12,7 @@
 // Awsmock includes
 #include <awsmock/core/SystemUtils.h>
 #include <awsmock/core/logging/LogStream.h>
-#include <awsmock/lrt/IlambdaRuntime.h>
+#include <awsmock/lrt/ILambdaRuntime.h>
 
 namespace Awsmock::Lrt {
 
@@ -36,7 +36,7 @@ namespace Awsmock::Lrt {
      * Handler format: symbol name of the invoke function (default: "lambda_invoke")
      * Code path:      full path to the .so file
      */
-    class lambdaCppRuntime final : public IlambdaRuntime {
+    class LambdaCppRuntime final : public ILambdaRuntime {
       public:
 
         /**
@@ -44,14 +44,14 @@ namespace Awsmock::Lrt {
          * @param handler   exported C symbol name (default: "lambda_invoke")
          * @param envVars   environment variables set before dlopen
          */
-        lambdaCppRuntime(const std::string &libPath,
+        LambdaCppRuntime(const std::string &libPath,
                         const std::string &handler,
                         const std::map<std::string, std::string> &envVars = {});
 
-        ~lambdaCppRuntime() override;
+        ~LambdaCppRuntime() override;
 
         std::string invoke(const std::string &eventJson) override;
-        Dto::lambda::lambdaStatus getStatus() const override { return _status; }
+        Dto::Lambda::LambdaStatus getStatus() const override { return _status; }
         void shutdown() override;
 
       private:
@@ -65,7 +65,7 @@ namespace Awsmock::Lrt {
         InvokeFn _invokeFn = nullptr;
         FreeFn _freeFn = nullptr;
         std::mutex _invokeMtx;
-        Dto::lambda::lambdaStatus _status;
+        Dto::Lambda::LambdaStatus _status;
     };
 
 }// namespace Awsmock::GRT

@@ -7,8 +7,8 @@ RUN mkdir -p \
         /usr/local/awsmock/etc \
         /usr/local/awsmock/log
 
-COPY cmake-build-release/awsmock-grt /usr/local/awsmock/bin/awsmock-grt
-RUN chmod +x /usr/local/awsmock/bin/awsmock-grt
+COPY cmake-build-release/awsmock-lrt /usr/local/awsmock/bin/awsmock-lrt
+RUN chmod +x /usr/local/awsmock/bin/awsmock-lrt
 
 COPY docker/awsmock.json /usr/local/awsmock/etc/awsmock.json
 
@@ -16,4 +16,4 @@ ENV PATH="/usr/local/awsmock/bin:${PATH}"
 
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/local/awsmock/bin/awsmock-grt"]
+ENTRYPOINT ["/usr/local/awsmock/bin/awsmock-lrt"]

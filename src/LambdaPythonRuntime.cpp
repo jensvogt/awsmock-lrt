@@ -2,7 +2,7 @@
 // Created by vogje01 on 6/21/26.
 //
 
-#include <awsmock/lrt/GammaPythonRuntime.h>
+#include <awsmock/lrt/LambdaPythonRuntime.h>
 
 // C++ includes
 #include <fstream>
@@ -48,7 +48,7 @@ for line in sys.stdin:
         sys.stdout.flush()
 )PY";
 
-    GammaPythonRuntime::GammaPythonRuntime(const std::string &codePath,
+    LambdaPythonRuntime::LambdaPythonRuntime(const std::string &codePath,
                                            const std::string &handler,
                                            const std::map<std::string, std::string> &envVars,
                                            const std::string &pythonExecutable) {
@@ -58,12 +58,12 @@ for line in sys.stdin:
         log_info << "Python runtime started, handler: " << handler << ", code: " << codePath;
     }
 
-    GammaPythonRuntime::~GammaPythonRuntime() {
+    LambdaPythonRuntime::~LambdaPythonRuntime() {
         if (!_shimPath.empty())
             ::unlink(_shimPath.c_str());
     }
 
-    void GammaPythonRuntime::writeShim() {
+    void LambdaPythonRuntime::writeShim() {
         std::ofstream f(_shimPath);
         if (!f)
             throw std::runtime_error("Cannot write Python shim to " + _shimPath);

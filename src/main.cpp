@@ -20,29 +20,29 @@
 #include <awsmock/core/HttpSocket.h>
 #include <awsmock/core/config/Configuration.h>
 #include <awsmock/core/scheduler/Scheduler.h>
-#include <awsmock/lrt/GammaRuntimeFactory.h>
+#include <awsmock/lrt/LambdaRuntimeFactory.h>
 #include <awsmock/lrt/HttpHandler.h>
 #include <awsmock/lrt/HttpServer.h>
 
 namespace po = boost::program_options;
 
 namespace {
-    logger_t _logger{boost::log::keywords::channel = "GammaRuntime"};
+    logger_t _logger{boost::log::keywords::channel = "LambdaRuntime"};
 }
 
 #define DEFAULT_CONFIG_FILE "/usr/local/awsmock/etc/awsmock.json"
-#define DEFAULT_LOG_FILE "/usr/local/awsmock/log/awsmock-grt.log"
+#define DEFAULT_LOG_FILE "/usr/local/awsmock/log/awsmock-lrt.log"
 #define DEFAULT_LOG_LEVEL "debug"
 #define DEFAULT_RUNTIME "java21"
 
-static void ReportGrtStatus(const Awsmock::Lrt::IGammaRuntime &runtime, const std::string &functionName, const int port, const std::string &managerHost, const int managerPort) {
+static void ReportGrtStatus(const Awsmock::Lrt::ILambdaRuntime &runtime, const std::string &functionName, const int port, const std::string &managerHost, const int managerPort) {
     try {
-        Awsmock::Dto::Gamma::GammaStatus status = runtime.getStatus();
+        Awsmock::Dto::Lambda::LambdaStatus status = runtime.getStatus();
         status.functionName = functionName;
         status.port = port;
         const std::map<std::string, std::string> headers = {
                 {"x-awsmock-target", "lambda"},
-                {"x-awsmock-action", "gamma-runtime-status"},
+                {"x-awsmock-action", "lambda-runtime-status"},
         };
         Awsmock::Core::HttpSocket::SendJson(http::verb::post, managerHost, managerPort, "/", status.ToJson(), headers);
         log_debug << "GRT status reported to manager, function: " << functionName;
@@ -80,7 +80,7 @@ int main(const int argc, char *argv[]) {
     std::vector<std::string> rawEnv;
     std::vector<std::string> jvmArgs;
 
-    po::options_description desc("awsmock-grt options", 256);
+    po::options_description desc("awsmock-lrt options", 256);
     // clang-format off
     desc.add_options()("help,h", "Show help message")
     ("code-path,c",      po::value<std::string>(&codePath)->required(),                              "Path to the Lambda code artifact (JAR, .so, or source directory)")
@@ -158,22 +158,22 @@ int main(const int argc, char *argv[]) {
     params.nodeExecutable = nodeExecutable;
     params.pythonExecutable = pythonExecutable;
 
-    std::unique_ptr<Awsmock::Lrt::IGammaRuntime> runtime_ptr;
+    std::unique_ptr<Awsmock::Lrt::ILambdaRuntime> runtime_ptr;
     try {
-        runtime_ptr = Awsmock::Lrt::GammaRuntimeFactory::create(runtime, params);
+        runtime_ptr = Awsmock::Lrt::LambdaRuntimeFactory::create(runtime, params);
     } catch (const std::exception &ex) {
         std::cerr << "Failed to create runtime '" << runtime << "': " << ex.what() << '\n';
         return 1;
     }
 
     // Config
-    Awsmock::Dto::Gamma::GammaConfig gammaConfig;
-    gammaConfig.port = port;
-    gammaConfig.runtime = runtime;
+    Awsmock::Dto::Lambda::LambdaConfig lambdaConfig;
+    lambdaConfig.port = port;
+    lambdaConfig.runtime = runtime;
 
     // Start HTTP server
     Awsmock::Lrt::HttpServer server(address, static_cast<unsigned short>(port), 4);
-    Awsmock::Lrt::HttpHandler httpHandler(server, *runtime_ptr, gammaConfig);
+    Awsmock::Lrt::HttpHandler httpHandler(server, *runtime_ptr, lambdaConfig);
     httpHandler.registerRoutes();
     server.start();
     log_info << "Server started. Waiting for invocations.";
@@ -181,7 +181,7 @@ int main(const int argc, char *argv[]) {
     // Periodic status reporter
     const auto managerHost = Awsmock::Core::Configuration::instance().getOr<std::string>("awsmock.gateway.http.host", "localhost");
     const int managerPort = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.gateway.http.port", 4566);
-    const int reportPeriod = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.modules.lambda.gamma.report-period", 30);
+    const int reportPeriod = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.modules.lambda.lambda.report-period", 30);
     boost::asio::io_context schedulerIoc;
     auto workGuard = boost::asio::make_work_guard(schedulerIoc);
     Awsmock::Core::Scheduler::initialize(schedulerIoc);

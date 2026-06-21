@@ -17,29 +17,29 @@
 
 // Awsmock includes
 #include <awsmock/core/logging/LogStream.h>
-#include <../dto/lambda/model/GammaStatus.h>
-#include <awsmock/lrt/IGammaRuntime.h>
+#include <awsmock/dto/lambda/model/LambdaStatus.h>
+#include <awsmock/lrt/ILambdaRuntime.h>
 
 namespace Awsmock::Lrt {
 
-    class GammaJvmRuntime final : public IGammaRuntime {
+    class LambdaJvmRuntime final : public ILambdaRuntime {
       public:
 
         /**
-         * @brief Constructor for the awsmock gamma runtime
+         * @brief Constructor for the awsmock lambda runtime
          *
          * @param jarPath       full path to the Lambda JAR
-         * @param handler       "com.example.Handler::handleRequest" (Gamma convention)
+         * @param handler       "com.example.Handler::handleRequest" (lambda convention)
          * @param envVars       OS environment variables set before JVM creation
          * @param jvmArgs       extra JVM options, e.g. {"-Xmx512m", "-Dserver.port=9000"}
          * @param runtimeJars   additional JARs to prepend to the classpath (AWS runtime libs)
          */
-        GammaJvmRuntime(const std::string &jarPath, const std::string &handler, const std::map<std::string, std::string> &envVars = {}, const std::vector<std::string> &jvmArgs = {}, const std::vector<std::string> &runtimeJars = {});
+        LambdaJvmRuntime(const std::string &jarPath, const std::string &handler, const std::map<std::string, std::string> &envVars = {}, const std::vector<std::string> &jvmArgs = {}, const std::vector<std::string> &runtimeJars = {});
 
         /**
          * @brief Destructor
          */
-        ~GammaJvmRuntime() override;
+        ~LambdaJvmRuntime() override;
 
         /**
          * @brief Trigger a graceful JVM shutdown via System.exit(0).
@@ -53,7 +53,7 @@ namespace Awsmock::Lrt {
         void shutdown() override;
 
         /**
-         * @brief Invoke gamma function
+         * @brief Invoke lambda function
          *
          * @param eventJson event JSON
          * @return invocation result
@@ -66,14 +66,14 @@ namespace Awsmock::Lrt {
          *
          * @return current status
          */
-        Dto::Gamma::GammaStatus getStatus() const override { return _status; }
+        Dto::Lambda::LambdaStatus getStatus() const override { return _status; }
 
       private:
 
         /**
          * @brief Channeled logger
          */
-        logger_t _logger{boost::log::keywords::channel = "GammaRuntime"};
+        logger_t _logger{boost::log::keywords::channel = "lambdaRuntime"};
 
         /**
          * @brief Invoke method.
@@ -145,6 +145,6 @@ namespace Awsmock::Lrt {
         /**
          * @brief Status
          */
-        Dto::Gamma::GammaStatus _status;
+        Dto::Lambda::LambdaStatus _status;
     };
 }// namespace Awsmock::GRT

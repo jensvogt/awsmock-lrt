@@ -18,7 +18,7 @@
 #include <boost/beast.hpp>
 
 // Project includes
-#include <awsmock/dto/gamma/model/RuntimeStatus.h>
+#include <awsmock/dto/lambda/model/RuntimeStatus.h>
 #include <awsmock/core/logging/LogStream.h>
 
 namespace net = boost::asio;

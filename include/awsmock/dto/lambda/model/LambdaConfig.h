@@ -9,9 +9,9 @@
 #include <awsmock/core/config/Configuration.h>
 #include <awsmock/dto/common/BaseObject.h>
 
-namespace Awsmock::Dto::Gamma {
+namespace Awsmock::Dto::Lambda {
 
-    struct GammaConfig : Common::BaseObject<GammaConfig> {
+    struct LambdaConfig : Common::BaseObject<LambdaConfig> {
 
         /**
          * @brief Version
@@ -35,8 +35,8 @@ namespace Awsmock::Dto::Gamma {
 
       private:
 
-        friend GammaConfig tag_invoke(boost::json::value_to_tag<GammaConfig>, boost::json::value const &v) {
-            GammaConfig r;
+        friend LambdaConfig tag_invoke(boost::json::value_to_tag<LambdaConfig>, boost::json::value const &v) {
+            LambdaConfig r;
             r.version = Core::Json::GetStringValue(v, "version");
             r.boostVersion = Core::Json::GetStringValue(v, "boostVersion");
             r.port = Core::Json::GetIntValue(v, "port");
@@ -44,7 +44,7 @@ namespace Awsmock::Dto::Gamma {
             return r;
         }
 
-        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &jv, GammaConfig const &obj) {
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &jv, LambdaConfig const &obj) {
             jv = {
                     {"version", obj.version},
                     {"boostVersion", obj.boostVersion},
@@ -53,4 +53,4 @@ namespace Awsmock::Dto::Gamma {
             };
         }
     };
-}// namespace Awsmock::Dto::Gamma
+}// namespace Awsmock::Dto::Lambda

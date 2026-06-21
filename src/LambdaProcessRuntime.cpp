@@ -2,7 +2,7 @@
 // Created by vogje01 on 6/21/26.
 //
 
-#include <awsmock/lrt/GammaProcessRuntime.h>
+#include <awsmock/lrt/LambdaProcessRuntime.h>
 
 // C++ includes
 #include <chrono>
@@ -20,7 +20,7 @@ namespace Awsmock::Lrt {
 
     // ── spawn ─────────────────────────────────────────────────────────────────
 
-    void GammaProcessRuntime::spawn(const std::string &executable,
+    void LambdaProcessRuntime::spawn(const std::string &executable,
                                     const std::vector<std::string> &args,
                                     const std::map<std::string, std::string> &envVars) {
         _status.runtimeStatus = RuntimeStatus::starting;
@@ -56,7 +56,9 @@ namespace Awsmock::Lrt {
             execvp(executable.c_str(), const_cast<char *const *>(argv.data()));
             // exec failed — write error to stderr and exit
             const std::string msg = "execvp(" + executable + ") failed: " + strerror(errno) + "\n";
-            write(STDERR_FILENO, msg.data(), msg.size());
+            if (const ssize_t written=write(STDERR_FILENO, msg.data(), msg.size()); written < 0) {
+                log_error << "write to stderr failed: " << strerror(errno);
+            }
             _exit(1);
         }
 
@@ -72,7 +74,7 @@ namespace Awsmock::Lrt {
 
     // ── invoke ────────────────────────────────────────────────────────────────
 
-    std::string GammaProcessRuntime::invoke(const std::string &eventJson) {
+    std::string LambdaProcessRuntime::invoke(const std::string &eventJson) {
         std::lock_guard lock(_invokeMtx);
         _status.runtimeStatus = RuntimeStatus::running;
 
@@ -94,7 +96,7 @@ namespace Awsmock::Lrt {
 
     // ── readLine ──────────────────────────────────────────────────────────────
 
-    std::string GammaProcessRuntime::readLine() const {
+    std::string LambdaProcessRuntime::readLine() const {
         std::string result;
         char c;
         while (true) {
@@ -112,15 +114,15 @@ namespace Awsmock::Lrt {
 
     // ── shutdown / destructor ─────────────────────────────────────────────────
 
-    void GammaProcessRuntime::shutdown() {
+    void LambdaProcessRuntime::shutdown() {
         killChild();
     }
 
-    GammaProcessRuntime::~GammaProcessRuntime() {
+    LambdaProcessRuntime::~LambdaProcessRuntime() {
         killChild();
     }
 
-    void GammaProcessRuntime::killChild() {
+    void LambdaProcessRuntime::killChild() {
         if (_stdinFd >= 0) { close(_stdinFd); _stdinFd = -1; }
         if (_stdoutFd >= 0) { close(_stdoutFd); _stdoutFd = -1; }
 

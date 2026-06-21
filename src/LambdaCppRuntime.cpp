@@ -13,7 +13,7 @@
 
 namespace Awsmock::Lrt {
 
-    GammaCppRuntime::GammaCppRuntime(const std::string &libPath,
+    LambdaCppRuntime::LambdaCppRuntime(const std::string &libPath,
                                      const std::string &handler,
                                      const std::map<std::string, std::string> &envVars) {
         _status.runtimeStatus = RuntimeStatus::starting;
@@ -26,23 +26,23 @@ namespace Awsmock::Lrt {
         if (!_handle)
             throw std::runtime_error(std::string("dlopen failed: ") + dlerror());
 
-        const std::string symbol = handler.empty() ? "gamma_invoke" : handler;
+        const std::string symbol = handler.empty() ? "lambda_invoke" : handler;
         _invokeFn = reinterpret_cast<InvokeFn>(dlsym(_handle, symbol.c_str()));
         if (!_invokeFn)
             throw std::runtime_error("Symbol not found: " + symbol + " — " + dlerror());
 
-        // gamma_free is optional
-        _freeFn = reinterpret_cast<FreeFn>(dlsym(_handle, "gamma_free"));
+        // lambda_free is optional
+        _freeFn = reinterpret_cast<FreeFn>(dlsym(_handle, "lambda_free"));
 
         _status.runtimeStatus = RuntimeStatus::idle;
         log_info << "C++ runtime loaded, lib: " << libPath << ", symbol: " << symbol;
     }
 
-    GammaCppRuntime::~GammaCppRuntime() {
+    LambdaCppRuntime::~LambdaCppRuntime() {
         shutdown();
     }
 
-    std::string GammaCppRuntime::invoke(const std::string &eventJson) {
+    std::string LambdaCppRuntime::invoke(const std::string &eventJson) {
         std::lock_guard lock(_invokeMtx);
         _status.runtimeStatus = RuntimeStatus::running;
 
@@ -58,7 +58,7 @@ namespace Awsmock::Lrt {
         return result;
     }
 
-    void GammaCppRuntime::shutdown() {
+    void LambdaCppRuntime::shutdown() {
         if (_handle) {
             dlclose(_handle);
             _handle = nullptr;

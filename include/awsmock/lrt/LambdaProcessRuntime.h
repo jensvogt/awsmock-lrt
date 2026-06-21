@@ -16,14 +16,14 @@
 // Awsmock includes
 #include <awsmock/core/SystemUtils.h>
 #include <awsmock/core/logging/LogStream.h>
-#include <awsmock/lrt/IGammaRuntime.h>
+#include <awsmock/lrt/ILambdaRuntime.h>
 
 namespace Awsmock::Lrt {
 
     /**
      * @brief Shared base for runtimes that delegate to a long-lived child process.
      *
-     * Subclasses (GammaNodeRuntime, GammaPythonRuntime) call spawn() from their
+     * Subclasses (LambdaNodeRuntime, LambdaPythonRuntime) call spawn() from their
      * constructor after writing any necessary shim files. The parent/child
      * communicate with newline-delimited JSON over a pair of pipes:
      *
@@ -33,13 +33,13 @@ namespace Awsmock::Lrt {
      * invoke() is serialised by a mutex — the HTTP server may be multi-threaded
      * but the child process handles one request at a time.
      */
-    class GammaProcessRuntime : public IGammaRuntime {
+    class LambdaProcessRuntime : public ILambdaRuntime {
       public:
 
-        ~GammaProcessRuntime() override;
+        ~LambdaProcessRuntime() override;
 
         std::string invoke(const std::string &eventJson) override;
-        Dto::Gamma::GammaStatus getStatus() const override { return _status; }
+        Dto::Lambda::LambdaStatus getStatus() const override { return _status; }
         void shutdown() override;
 
       protected:
@@ -58,12 +58,12 @@ namespace Awsmock::Lrt {
         /**
          * @brief Channeled logger
          */
-        logger_t _logger{boost::log::keywords::channel = "GammaRuntime"};
+        logger_t _logger{boost::log::keywords::channel = "LambdaRuntime"};
 
         /**
          * @brief Runtime status
          */
-        Dto::Gamma::GammaStatus _status;
+        Dto::Lambda::LambdaStatus _status;
 
       private:
 
