@@ -7,15 +7,25 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  VCPKG_BUILD_TYPE: release
+
 jobs:
   # ── Build the awsmock-grt binary ──────────────────────────────────────────────
   build:
     name: Build binary
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out awsmock-grt
+        uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Check out awsmock
+        uses: actions/checkout@v4
+        with:
+          repository: jensvogt/awsmock
+          path: awsmock
+
+      - name: Install build tools
         run: |
           wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc \
             | gpg --dearmor \
@@ -23,12 +33,70 @@ jobs:
           echo "deb https://apt.kitware.com/ubuntu/ noble main" \
             | sudo tee /etc/apt/sources.list.d/kitware.list
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++ libboost-all-dev default-jdk
+          sudo apt-get install -y cmake ninja-build g++ default-jdk \
+            curl zip unzip tar pkg-config autoconf automake libtool python3
 
-      - name: Configure
-        run: cmake -B cmake-build-release -DCMAKE_BUILD_TYPE=Release -G Ninja
+      - name: Get awsmock commit hash
+        id: awsmock-rev
+        run: echo "sha=$(git -C awsmock rev-parse HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Build
+      # Cache the fully-built awsmock libraries and vcpkg_installed tree, keyed
+      # by the awsmock commit.  A cache hit skips the entire vcpkg + cmake build.
+      - name: Cache awsmock build artifacts
+        id: cache-awsmock
+        uses: actions/cache@v4
+        with:
+          path: |
+            awsmock/cmake-build-release/libawsmockcore.a
+            awsmock/cmake-build-release/libawsmockdto.a
+            awsmock/cmake-build-release/libawsmockdb.a
+            awsmock/cmake-build-release/vcpkg_installed
+          key: awsmock-libs-${{ runner.os }}-${{ steps.awsmock-rev.outputs.sha }}
+
+      - name: Set up vcpkg
+        if: steps.cache-awsmock.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git vcpkg
+          ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+      # Binary cache for vcpkg packages, keyed on the awsmock vcpkg.json.
+      # Restoring this avoids recompiling mongo-cxx-driver and friends on every run.
+      - name: Cache vcpkg binary packages
+        if: steps.cache-awsmock.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: vcpkg-bincache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('awsmock/vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}-
+
+      - name: Build awsmockcore, awsmockdb and awsmockdto
+        if: steps.cache-awsmock.outputs.cache-hit != 'true'
+        env:
+          VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/vcpkg-bincache,readwrite"
+        run: |
+          mkdir -p vcpkg-bincache
+          cmake -B awsmock/cmake-build-release -S awsmock \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DBUILD_TESTING=OFF \
+            -G Ninja
+          cmake --build awsmock/cmake-build-release \
+            --target awsmockcore awsmockdb awsmockdto --parallel
+
+      - name: Copy awsmock libraries into lib/
+        run: |
+          cp awsmock/cmake-build-release/libawsmockcore.a lib/
+          cp awsmock/cmake-build-release/libawsmockdb.a   lib/
+          cp awsmock/cmake-build-release/libawsmockdto.a  lib/
+
+      - name: Configure awsmock-grt
+        run: |
+          cmake -B cmake-build-release \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DAWSMOCK_VCPKG_DIR=${{ github.workspace }}/awsmock/cmake-build-release/vcpkg_installed/x64-linux \
+            -G Ninja
+
+      - name: Build awsmock-grt
         run: cmake --build cmake-build-release --parallel
 
       - uses: actions/upload-artifact@v4
