@@ -33,8 +33,10 @@ jobs:
           echo "deb https://apt.kitware.com/ubuntu/ noble main" \
             | sudo tee /etc/apt/sources.list.d/kitware.list
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++ default-jdk \
+          sudo apt-get install -y cmake ninja-build gcc-14 g++-14 default-jdk \
             curl zip unzip tar pkg-config autoconf autoconf-archive automake libtool python3
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14
 
       - name: Get awsmock commit hash
         id: awsmock-rev
