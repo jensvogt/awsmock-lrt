@@ -34,7 +34,7 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/kitware.list
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build g++ default-jdk \
-            curl zip unzip tar pkg-config autoconf automake libtool python3
+            curl zip unzip tar pkg-config autoconf autoconf-archive automake libtool python3
 
       - name: Get awsmock commit hash
         id: awsmock-rev
