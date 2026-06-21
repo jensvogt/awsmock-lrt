@@ -2,7 +2,7 @@ FROM alpine:3.22
 
 RUN apk add --no-cache \
     bash git curl zip unzip tar \
-    ninja g++ pkgconf \
+    ninja make g++ pkgconf \
     autoconf autoconf-archive automake libtool \
     python3 py3-pip perl linux-headers musl-dev \
     openjdk21-jdk ca-certificates
