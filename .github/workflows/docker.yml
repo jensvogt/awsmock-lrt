@@ -1,0 +1,103 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Build the awsmock-grt binary ──────────────────────────────────────────────
+  build:
+    name: Build binary
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc \
+            | gpg --dearmor \
+            | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+          echo "deb https://apt.kitware.com/ubuntu/ noble main" \
+            | sudo tee /etc/apt/sources.list.d/kitware.list
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ libboost-all-dev default-jdk
+
+      - name: Configure
+        run: cmake -B cmake-build-release -DCMAKE_BUILD_TYPE=Release -G Ninja
+
+      - name: Build
+        run: cmake --build cmake-build-release --parallel
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: awsmock-grt
+          path: cmake-build-release/awsmock-grt
+          retention-days: 1
+
+  # ── Build and push one image per runtime ──────────────────────────────────────
+  docker:
+    name: Docker (${{ matrix.runtime }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runtime: java21
+            dockerfile: docker/Dockerfile.java21
+          - runtime: java25
+            dockerfile: docker/Dockerfile.java25
+          - runtime: nodejs20
+            dockerfile: docker/Dockerfile.nodejs20
+          - runtime: nodejs22
+            dockerfile: docker/Dockerfile.nodejs22
+          - runtime: nodejs24
+            dockerfile: docker/Dockerfile.nodejs24
+          - runtime: python312
+            dockerfile: docker/Dockerfile.python
+          - runtime: provided
+            dockerfile: docker/Dockerfile.provided
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: awsmock-grt
+          path: cmake-build-release/
+
+      - run: chmod +x cmake-build-release/awsmock-grt
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/awsmock-grt
+          tags: |
+            type=raw,value=${{ matrix.runtime }},enable={{is_default_branch}}
+            type=semver,pattern={{version}},suffix=-${{ matrix.runtime }}
+            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.runtime }}
+            type=ref,event=pr,suffix=-${{ matrix.runtime }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.runtime }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.runtime }}
