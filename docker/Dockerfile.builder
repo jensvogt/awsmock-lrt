@@ -4,7 +4,7 @@ RUN apk add --no-cache \
     bash git curl zip unzip tar \
     ninja make g++ pkgconf \
     autoconf autoconf-archive automake libtool \
-    python3 py3-pip perl linux-headers musl-dev \
+    python3 py3-pip perl linux-headers musl-dev gettext-dev \
     openjdk21-jdk ca-certificates
 
 # Alpine ships CMake < 4.2; get the current release via pip
