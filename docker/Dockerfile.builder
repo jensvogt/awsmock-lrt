@@ -1,16 +1,15 @@
 FROM alpine:3.22
 
+ENV VCPKG_FORCE_SYSTEM_BINARIES=1
+
 RUN apk add --no-cache \
-    bash git curl zip unzip tar \
-    ninja make g++ pkgconf \
-    autoconf autoconf-archive automake libtool \
-    python3 py3-pip perl linux-headers musl-dev gettext-dev \
+    build-base ninja git perl zip unzip curl tar pkgconfig linux-headers bash python3 py3-pip autoconf \
+    autoconf-archive automake libtool m4 make gettext-dev patch pkgconf ncurses-dev ncurses-terminfo-base \
+    coreutils openssl-dev zlib-dev bzip2-dev readline-dev sqlite-dev xz-dev libffi-dev util-linux-dev musl-dev \
     openjdk21-jdk ca-certificates
 
 # Alpine ships CMake < 4.2; get the current release via pip
 RUN pip3 install cmake --break-system-packages
-
-ENV VCPKG_FORCE_SYSTEM_BINARIES=1
 
 WORKDIR /build
 
@@ -25,6 +24,7 @@ RUN git clone https://github.com/jensvogt/awsmock.git awsmock && \
 RUN cmake -B awsmock/cmake-build-release -S awsmock \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_TOOLCHAIN_FILE=/build/vcpkg/scripts/buildsystems/vcpkg.cmake \
+        -DVCPKG_BUILD_TYPE=release \
         -DBUILD_TESTING=OFF \
         -G Ninja && \
     cmake --build awsmock/cmake-build-release \
