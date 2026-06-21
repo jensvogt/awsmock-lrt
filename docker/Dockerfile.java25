@@ -1,6 +1,6 @@
 FROM eclipse-temurin:25-jdk-alpine
 
-RUN apk add --no-cache ca-certificates libc6-compat
+RUN apk add --no-cache ca-certificates
 
 RUN mkdir -p \
         /usr/local/awsmock/bin \
