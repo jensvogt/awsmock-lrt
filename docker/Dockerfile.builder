@@ -10,6 +10,8 @@ RUN apk add --no-cache \
 # Alpine ships CMake < 4.2; get the current release via pip
 RUN pip3 install cmake --break-system-packages
 
+ENV VCPKG_FORCE_SYSTEM_BINARIES=1
+
 WORKDIR /build
 
 RUN git clone https://github.com/microsoft/vcpkg.git && \
