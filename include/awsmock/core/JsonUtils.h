@@ -1,0 +1,148 @@
+//
+// Created by vogje01 on 11/17/24.
+//
+
+#pragma once
+
+// C++ includes
+#include <chrono>
+#include <map>
+
+// Boost JSON includes
+#include <boost/json.hpp>
+
+// AwsMock includes
+#include <awsmock/core/DateTimeUtils.h>
+#include <awsmock/core/exception/JsonException.h>
+#include <awsmock/core/logging/LogStream.h>
+
+namespace Awsmock::Core::Json {
+
+    using std::chrono::system_clock;
+
+    inline boost::json::value ParseJsonString(const std::string &jsonString) {
+        boost::system::error_code ec;
+        boost::json::value result = boost::json::parse(jsonString, ec);
+        if (ec) {
+            throw JsonException("JSON exception, error: " + ec.message());
+        }
+        return result;
+    }
+
+    inline bool AttributeExists(const boost::json::value &value, const std::string &name) {
+        return value.as_object().if_contains(name) && !value.at(name).is_null();
+    }
+
+    inline std::string GetStringValue(const boost::json::value &value, const std::string &name) {
+        if (AttributeExists(value, name)) {
+            return value.at(name).as_string().data();
+        }
+        return {};
+    }
+
+    inline long GetLongValue(const boost::json::value &value, const std::string &name, const long defaultValue = 0) {
+        if (AttributeExists(value, name)) {
+            return value.at(name).as_int64();
+        }
+        return defaultValue;
+    }
+
+    inline long long GetLongLongValue(const boost::json::value &value, const std::string &name, const long defaultValue = 0) {
+        if (AttributeExists(value, name)) {
+            return value.at(name).as_int64();
+        }
+        return defaultValue;
+    }
+
+    inline int GetIntValue(const boost::json::value &value, const std::string &name, const int defaultValue = 0) {
+        return static_cast<int>(GetLongValue(value, name, defaultValue));
+    }
+
+    inline bool GetBoolValue(const boost::json::value &value, const std::string &name) {
+        if (AttributeExists(value, name)) {
+            return value.at(name).as_bool();
+        }
+        return false;
+    }
+
+    inline float GetFloatValue(const boost::json::value &value, const std::string &name) {
+        if (AttributeExists(value, name)) {
+            return static_cast<float>(value.at(name).as_double());
+        }
+        return 0.0;
+    }
+
+    inline double GetDoubleValue(const boost::json::value &value, const std::string &name) {
+        if (AttributeExists(value, name)) {
+            return value.at(name).as_double();
+        }
+        return 0.0;
+    }
+
+    inline std::vector<std::string> GetStringArrayValue(const boost::json::value &value, const std::string &name, const std::string &defaultValue = {}) {
+        if (AttributeExists(value, name)) {
+            return boost::json::value_to<std::vector<std::string>>(value.at(name));
+        }
+        return {defaultValue};
+    }
+
+    inline system_clock::time_point GetDatetimeValue(const boost::json::value &value, const std::string &name) {
+        if (AttributeExists(value, name)) {
+            return DateTimeUtils::FromISO8601(value.at(name).as_string().data());
+        }
+        return {};
+    }
+
+    inline system_clock::time_point GetDatetimeValueUTC(const boost::json::value &value, const std::string &name) {
+        if (AttributeExists(value, name)) {
+#ifdef __APPLE__
+            std::string dateStr = value.at(name).as_string().c_str();
+            struct tm tm = {};
+
+            // strptime is the standard on macOS/Linux
+            char *res = strptime(dateStr.c_str(), "%Y-%m-%dT%H:%M:%SZ", &tm);
+
+            if (res != nullptr) {
+                // timegm is the thread-safe UTC version of mktime on macOS/Linux
+                time_t t = timegm(&tm);
+                return std::chrono::system_clock::from_time_t(t);
+            }
+#else
+            std::stringstream ss{value.at(name).as_string().data()};
+            system_clock::time_point tp;
+            // The %FT%T%Z format covers:
+            // %F (Date: YYYY-MM-DD)
+            // T  (Literal separator)
+            // %T (Time: HH:MM:SS and subseconds)
+            // %Z (The UTC 'Z' suffix)
+            ss >> std::chrono::parse("%FT%T%Z", tp);
+            return tp;
+#endif
+        }
+        return {};
+    }
+
+    inline system_clock::time_point GetUnixTimestampValue(const boost::json::value &value, const std::string &name, const system_clock::time_point &defaultValue = {}) {
+        if (AttributeExists(value, name)) {
+            return DateTimeUtils::FromUnixTimestamp(value.at(name).get_int64());
+        }
+        return {defaultValue};
+    }
+
+    template<class T, class S>
+    std::map<T, S> GetMapFromObject(const boost::json::value &v, const std::string &name) {
+        std::map<T, S> valueMap;
+        if (AttributeExists(v, name)) {
+            for (const auto &element: v.at(name).as_object()) {
+                T key = element.key().data();
+                S value = element.value().as_string().data();
+                valueMap.emplace(key, value);
+            }
+        }
+        return valueMap;
+    }
+
+    inline bool findObject(boost::json::value &value, const std::string &name) {
+        return value.as_object().if_contains(name);
+    }
+}// namespace Awsmock::Core::Json

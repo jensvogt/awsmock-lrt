@@ -1,0 +1,196 @@
+//
+// Created by vogje01 on 30/05/2023.
+//
+
+#ifndef AWSMOCK_DTO_LAMBDA_CREATE_FUNCTION_REQUEST_H
+#define AWSMOCK_DTO_LAMBDA_CREATE_FUNCTION_REQUEST_H
+
+// C++ standard includes
+#include <string>
+
+// AwsMock includes
+#include <awsmock/core/BsonUtils.h>
+#include <awsmock/core/logging/LogStream.h>
+#include <awsmock/dto/common/BaseDto.h>
+#include <awsmock/dto/lambda/model/Code.h>
+#include <awsmock/dto/lambda/model/Environment.h>
+#include <awsmock/dto/lambda/model/EphemeralStorage.h>
+
+namespace Awsmock::Dto::Lambda {
+
+    /**
+     * @brief Create function response
+     *
+     * Example:
+     * @code{.json}
+     * {
+     *   "Architectures": [ "string" ],
+     *   "Code": {
+     *      "ImageUri": "string",
+     *      "S3Bucket": "string",
+     *      "S3Key": "string",
+     *      "S3ObjectVersion": "string",
+     *      "ZipFile": blob
+     *   },
+     *   "CodeSigningConfigArn": "string",
+     *   "DeadLetterConfig": {
+     *      "TargetArn": "string"
+     *   },
+     *   "Description": "string",
+     *   "Environment": {
+     *      "Variables": {
+     *         "string" : "string"
+     *      }
+     *   },
+     *   "EphemeralStorage": {
+     *      "Size": number
+     *   },
+     *   "FileSystemConfigs": [
+     *      {
+     *         "Arn": "string",
+     *         "LocalMountPath": "string"
+     *      }
+     *   ],
+     *   "FunctionName": "string",
+     *   "Handler": "string",
+     *   "ImageConfig": {
+     *      "Command": [ "string" ],
+     *      "EntryPoint": [ "string" ],
+     *      "WorkingDirectory": "string"
+     *   },
+     *   "KMSKeyArn": "string",
+     *   "Layers": [ "string" ],
+     *   "LoggingConfig": {
+     *      "ApplicationLogLevel": "string",
+     *      "LogFormat": "string",
+     *      "LogGroup": "string",
+     *      "SystemLogLevel": "string"
+     *   },
+     *   "MemorySize": number,
+     *   "PackageType": "string",
+     *   "Publish": boolean,
+     *   "Role": "string",
+     *   "Runtime": "string",
+     *   "SnapStart": {
+     *      "ApplyOn": "string"
+     *   },
+     *   "Tags": {
+     *      "string" : "string"
+     *   },
+     *   "Timeout": number,
+     *   "TracingConfig": {
+     *      "Mode": "string"
+     *   },
+     *   "VpcConfig": {
+     *      "Ipv6AllowedForDualStack": boolean,
+     *      "SecurityGroupIds": [ "string" ],
+     *      "SubnetIds": [ "string" ]
+     *   }
+     * }
+     * @endcode
+     *
+     * @author jens.vogt\@opitz-consulting.com
+     */
+    struct CreateFunctionRequest final : Common::BaseCounter<CreateFunctionRequest> {
+
+        /**
+         * Name of the function
+         */
+        std::string functionName;
+
+        /**
+         * Runtime environment
+         */
+        std::string runtime;
+
+        /**
+         * Role
+         */
+        std::string role;
+
+        /**
+         * Version
+         */
+        std::string version;
+
+        /**
+         * Role
+         */
+        std::string handler;
+
+        /**
+         * Environment
+         */
+        EnvironmentVariables environment{};
+
+        /**
+         * Memory size in MB. Default: 128, Range: 128 - 10240 MB
+         */
+        long memorySize = 128;
+
+        /**
+         * Temporary disk space in MB
+         */
+        EphemeralStorage ephemeralStorage{};
+
+        /**
+         * Code
+         */
+        Code code{};
+
+        /**
+         * Tags
+         */
+        std::map<std::string, std::string> tags{};
+
+        /**
+         * Timeout
+         */
+        int timeout = 15 * 60;
+
+      private:
+
+        friend CreateFunctionRequest tag_invoke(boost::json::value_to_tag<CreateFunctionRequest>, boost::json::value const &v) {
+            CreateFunctionRequest r;
+            r.functionName = Core::Json::GetStringValue(v, "FunctionName");
+            r.runtime = Core::Json::GetStringValue(v, "Runtime");
+            r.role = Core::Json::GetStringValue(v, "Role");
+            r.version = Core::Json::GetStringValue(v, "Version");
+            r.handler = Core::Json::GetStringValue(v, "Handler");
+            r.memorySize = Core::Json::GetLongValue(v, "MemorySize");
+            r.timeout = Core::Json::GetIntValue(v, "Timeout");
+            if (Core::Json::AttributeExists(v, "Environment")) {
+                r.environment = boost::json::value_to<EnvironmentVariables>(v.at("Environment"));
+            }
+            if (Core::Json::AttributeExists(v, "EphemeralStorage")) {
+                r.ephemeralStorage = boost::json::value_to<EphemeralStorage>(v.at("EphemeralStorage"));
+            }
+            if (Core::Json::AttributeExists(v, "Code")) {
+                r.code = boost::json::value_to<Code>(v.at("Code"));
+            }
+            if (Core::Json::AttributeExists(v, "Tags")) {
+                r.tags = boost::json::value_to<std::map<std::string, std::string>>(v.at("Tags"));
+            }
+            return r;
+        }
+
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &jv, CreateFunctionRequest const &obj) {
+            jv = {
+                    {"FunctionName", obj.functionName},
+                    {"Runtime", obj.runtime},
+                    {"Role", obj.role},
+                    {"Version", obj.version},
+                    {"Handler", obj.handler},
+                    {"MemorySize", obj.memorySize},
+                    {"Timeout", obj.timeout},
+                    {"Environment", boost::json::value_from(obj.environment)},
+                    {"EphemeralStorage", boost::json::value_from(obj.ephemeralStorage)},
+                    {"Code", boost::json::value_from(obj.code)},
+                    {"Tags", boost::json::value_from(obj.tags)},
+            };
+        }
+    };
+
+}// namespace Awsmock::Dto::Lambda
+
+#endif// AWSMOCK_DTO_LAMBDA_CREATE_FUNCTION_REQUEST_H

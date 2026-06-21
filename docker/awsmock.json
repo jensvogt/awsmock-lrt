@@ -1,0 +1,17 @@
+{
+  "awsmock": {
+    "gateway": {
+      "http": {
+        "host": "localhost",
+        "port": 4566
+      }
+    },
+    "modules": {
+      "lambda": {
+        "gamma": {
+          "report-period": 30
+        }
+      }
+    }
+  }
+}

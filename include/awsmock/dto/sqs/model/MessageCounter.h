@@ -1,0 +1,159 @@
+//
+// Created by vogje01 on 7/6/24.
+//
+
+#pragma once
+
+// C++ includes
+#include <chrono>
+#include <map>
+#include <string>
+
+// AwsMock includes
+#include <awsmock/core/DateTimeUtils.h>
+#include <awsmock/dto/common/BaseObject.h>
+#include <awsmock/dto/sqs/model/MessageAttribute.h>
+
+namespace Awsmock::Dto::SQS {
+
+    using std::chrono::system_clock;
+
+    /**
+     * @brief SQS message counter as used by the frontend
+     *
+     * @author jens.vogt\@opitz-consulting.com
+     */
+    struct MessageCounter final : Common::BaseObject<MessageCounter> {
+
+        /**
+         * Queue name
+         */
+        std::string queueName;
+
+        /**
+         * Queue URL
+         */
+        std::string queueUrl;
+
+        /**
+         * Queue ARN
+         */
+        std::string queueArn;
+
+        /**
+         * Message ID
+         */
+        std::string messageId;
+
+        /**
+         * ID
+         */
+        std::string id;
+
+        /**
+         * Receipt handle
+         */
+        std::string receiptHandle;
+
+        /**
+         * Body
+         */
+        std::string body;
+
+        /**
+         * System attributes
+         */
+        std::map<std::string, std::string> attributes;
+
+        /**
+         * Message attributes
+         */
+        std::map<std::string, MessageAttribute> messageAttributes;
+
+        /**
+         * MD5 message body
+         */
+        std::string md5OfBody;
+
+        /**
+         * MD5 message attributes
+         */
+        std::string md5OfMessageAttributes;
+
+        /**
+         * MD5 system attributes
+         */
+        std::string md5OfSystemAttributes;
+
+        /**
+         * Content type
+         */
+        std::string contentType;
+
+        /**
+         * Message size
+         */
+        long size{};
+
+        /**
+         * Message retries
+         */
+        long retries{};
+
+        /**
+         * Created time stamp
+         */
+        system_clock::time_point created = Core::DateTimeUtils::LocalDateTimeNow();
+
+        /**
+         * Created time stamp
+         */
+        system_clock::time_point modified;
+
+      private:
+
+        friend MessageCounter tag_invoke(boost::json::value_to_tag<MessageCounter>, boost::json::value const &v) {
+            MessageCounter r;
+            r.queueName = v.at("queueName").as_string();
+            r.queueUrl = v.at("queueUrl").as_string();
+            r.queueArn = v.at("queueArn").as_string();
+            r.messageId = v.at("messageId").as_string();
+            r.id = v.at("id").as_string();
+            r.receiptHandle = v.at("receiptHandle").as_string();
+            r.body = v.at("body").as_string();
+            r.md5OfBody = v.at("md5OfBody").as_string();
+            r.md5OfMessageAttributes = v.at("md5OfMessageAttributes").as_string();
+            r.md5OfSystemAttributes = v.at("md5OfSystemAttributes").as_string();
+            r.size = v.at("size").as_int64();
+            r.retries = v.at("retries").as_int64();
+            r.attributes = boost::json::value_to<std::map<std::string, std::string>>(v.at("attributes"));
+            r.messageAttributes = boost::json::value_to<std::map<std::string, MessageAttribute>>(v.at("messageAttributes"));
+            r.created = Core::DateTimeUtils::FromISO8601(v.at("created").as_string().data());
+            r.modified = Core::DateTimeUtils::FromISO8601(v.at("modified").as_string().data());
+            return r;
+        }
+
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &jv, MessageCounter const &obj) {
+            jv = {
+                    {"contentType", obj.contentType},
+                    {"queueName", obj.queueName},
+                    {"queueUrl", obj.queueUrl},
+                    {"queueArn", obj.queueArn},
+                    {"messageId", obj.messageId},
+                    {"id", obj.id},
+                    {"receiptHandle", obj.receiptHandle},
+                    {"body", obj.body},
+                    {"md5OfBody", obj.md5OfBody},
+                    {"md5OfMessageAttributes", obj.md5OfMessageAttributes},
+                    {"md5OfSystemAttributes", obj.md5OfSystemAttributes},
+                    {"size", obj.size},
+                    {"retries", obj.retries},
+                    {"attributes", boost::json::value_from(obj.attributes)},
+                    {"messageAttributes", boost::json::value_from(obj.messageAttributes)},
+                    {"created", Core::DateTimeUtils::ToISO8601(obj.created)},
+                    {"modified", Core::DateTimeUtils::ToISO8601(obj.modified)},
+            };
+        }
+    };
+
+}// namespace Awsmock::Dto::SQS

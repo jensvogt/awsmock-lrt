@@ -1,0 +1,22 @@
+FROM eclipse-temurin:25-jdk-alpine
+
+RUN apk add --no-cache ca-certificates libc6-compat
+
+RUN mkdir -p \
+        /usr/local/awsmock/bin \
+        /usr/local/awsmock/lib/java \
+        /usr/local/awsmock/etc \
+        /usr/local/awsmock/log
+
+COPY cmake-build-release/awsmock-grt /usr/local/awsmock/bin/awsmock-grt
+RUN chmod +x /usr/local/awsmock/bin/awsmock-grt
+
+COPY lib/java/ /usr/local/awsmock/lib/java/
+COPY docker/awsmock.json /usr/local/awsmock/etc/awsmock.json
+
+ENV PATH="/usr/local/awsmock/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${JAVA_HOME}/lib/server:${LD_LIBRARY_PATH}"
+
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/awsmock/bin/awsmock-grt"]

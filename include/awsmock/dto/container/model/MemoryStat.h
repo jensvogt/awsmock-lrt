@@ -1,0 +1,68 @@
+//
+// Created by vogje01 on 06/06/2023.
+//
+
+#pragma once
+
+// C++ includes
+#include <string>
+
+// AwsMock includes
+#include <awsmock/dto/common/BaseObject.h>
+#include <awsmock/dto/container/model/MemoryStats.h>
+
+namespace Awsmock::Dto::Docker {
+
+    /**
+     * @brief Docker container memory statistics
+     *
+     * @par
+     * Contains statistical data from the docker daemon about one container.
+     *
+     * @author jens.vogt\@opitz-consulting.com
+     */
+    struct MemoryStat final : Common::BaseObject<MemoryStat> {
+
+        /**
+         * Maximal usage in bytes
+         */
+        long long maxUsage{};
+
+        /**
+         * Current usage in bytes
+         */
+        long long usage{};
+
+        /**
+         * Limit in bytes
+         */
+        long long limit{};
+
+        /**
+         * Stats
+         */
+        MemoryStats stats;
+
+    private:
+        friend MemoryStat tag_invoke(boost::json::value_to_tag<MemoryStat>, boost::json::value const &v) {
+            MemoryStat r;
+            r.maxUsage = Core::Json::GetLongLongValue(v, "max_usage");
+            r.usage = Core::Json::GetLongLongValue(v, "usage");
+            r.limit = Core::Json::GetLongLongValue(v, "limit");
+            if (Core::Json::AttributeExists(v, "stats")) {
+                r.stats = boost::json::value_to<MemoryStats>(v.at("stats"));
+            }
+            return r;
+        }
+
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &jv, MemoryStat const &obj) {
+            jv = {
+                {"max_usage", obj.maxUsage},
+                {"usage", obj.usage},
+                {"limit", obj.limit},
+                {"stats", boost::json::value_from(obj.stats)},
+            };
+        }
+    };
+
+} // namespace Awsmock::Dto::Docker

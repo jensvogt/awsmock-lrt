@@ -1,0 +1,69 @@
+//
+// Created by vogje01 on 30/05/2023.
+//
+
+#pragma once
+
+// C++ standard includes
+#include <string>
+
+// AwsMock includes
+#include <awsmock/core/JsonUtils.h>
+#include <awsmock/dto/common/BaseCounter.h>
+#include <awsmock/dto/common/SortColumn.h>
+
+namespace Awsmock::Dto::SNS {
+
+    struct ListAttributeCountersRequest final : Common::BaseCounter<ListAttributeCountersRequest> {
+
+        /**
+         * TopicArn
+         */
+        std::string topicArn;
+
+        /**
+         * Prefix
+         */
+        std::string prefix;
+
+        /**
+         * Page size
+         */
+        long pageSize{};
+
+        /**
+         * Page index
+         */
+        long pageIndex{};
+
+        /**
+         * Sort column
+         */
+        std::vector<Common::SortColumn> sortColumns;
+
+      private:
+
+        friend ListAttributeCountersRequest tag_invoke(boost::json::value_to_tag<ListAttributeCountersRequest>, boost::json::value const &v) {
+            ListAttributeCountersRequest r;
+            r.topicArn = Core::Json::GetStringValue(v, "topicArn");
+            r.prefix = Core::Json::GetStringValue(v, "prefix");
+            r.pageSize = Core::Json::GetLongValue(v, "pageSize");
+            r.pageIndex = Core::Json::GetLongValue(v, "pageIndex");
+            if (Core::Json::AttributeExists(v, "sortColumns")) {
+                r.sortColumns = boost::json::value_to<std::vector<Common::SortColumn>>(v.at("sortColumns"));
+            }
+            return r;
+        }
+
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &jv, ListAttributeCountersRequest const &obj) {
+            jv = {
+                    {"topicArn", obj.topicArn},
+                    {"prefix", obj.prefix},
+                    {"pageSize", obj.pageSize},
+                    {"pageIndex", obj.pageIndex},
+                    {"sortColumns", boost::json::value_from(obj.sortColumns)},
+            };
+        }
+    };
+
+}// namespace Awsmock::Dto::SNS
