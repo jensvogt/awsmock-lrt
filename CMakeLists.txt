@@ -7,19 +7,48 @@ set(CMAKE_CXX_STANDARD 23)
 # Override with -DAWSMOCK_VCPKG_DIR=<path> if the awsmock build tree moves.
 set(AWSMOCK_VCPKG_DIR "" CACHE PATH "vcpkg installed dir used by awsmockcore/awsmockdto")
 if(NOT AWSMOCK_VCPKG_DIR)
-    foreach(_candidate
-            "${CMAKE_CURRENT_SOURCE_DIR}/../awsmock/cmake-build-debug/vcpkg_installed/x64-linux"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../awsmock/cmake-build-release/vcpkg_installed/x64-linux"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../awsmock/build/vcpkg_installed/x64-linux")
-        if(EXISTS "${_candidate}/share/boost/BoostConfig.cmake")
-            set(AWSMOCK_VCPKG_DIR "${_candidate}")
-            message(STATUS "Auto-detected AWSMOCK_VCPKG_DIR: ${AWSMOCK_VCPKG_DIR}")
+    get_filename_component(_awsmock_root "${CMAKE_CURRENT_SOURCE_DIR}/../awsmock" ABSOLUTE)
+    foreach(_triplet "x64-linux" "x64-windows" "x64-windows-static")
+        foreach(_build "cmake-build-debug" "cmake-build-release" "build")
+            set(_candidate "${_awsmock_root}/${_build}/vcpkg_installed/${_triplet}")
+            if(EXISTS "${_candidate}/include/openssl/ssl.h")
+                set(AWSMOCK_VCPKG_DIR "${_candidate}")
+                message(STATUS "Auto-detected AWSMOCK_VCPKG_DIR: ${AWSMOCK_VCPKG_DIR}")
+                break()
+            endif()
+        endforeach()
+        if(AWSMOCK_VCPKG_DIR)
             break()
         endif()
     endforeach()
 endif()
-if(EXISTS "${AWSMOCK_VCPKG_DIR}")
+if(AWSMOCK_VCPKG_DIR)
     list(PREPEND CMAKE_PREFIX_PATH "${AWSMOCK_VCPKG_DIR}")
+    if(NOT OPENSSL_ROOT_DIR)
+        set(OPENSSL_ROOT_DIR "${AWSMOCK_VCPKG_DIR}" CACHE PATH "OpenSSL root inferred from AWSMOCK_VCPKG_DIR")
+        message(STATUS "Setting OPENSSL_ROOT_DIR: ${OPENSSL_ROOT_DIR}")
+    endif()
+else()
+    message(WARNING "AWSMOCK_VCPKG_DIR not found — set -DAWSMOCK_VCPKG_DIR=<path> manually")
+endif()
+
+# On Windows, Boost may live in a separate vcpkg from the one awsmock was built against.
+if(WIN32)
+    get_filename_component(_awsmock_root "${CMAKE_CURRENT_SOURCE_DIR}/../awsmock" ABSOLUTE)
+    foreach(_boost_candidate
+            "${_awsmock_root}/cmake-build-debug/vcpkg_installed/x64-windows"
+            "${_awsmock_root}/cmake-build-release/vcpkg_installed/x64-windows"
+            "${_awsmock_root}/build/vcpkg_installed/x64-windows"
+            "$ENV{VCPKG_ROOT}/installed/x64-windows"
+            "$ENV{VCPKG_ROOT}/installed/x64-windows-static"
+            "C:/work/private/extern/vcpkg/installed/x64-windows"
+            "C:/work/private/extern/vcpkg/installed/x64-windows-static")
+        if(EXISTS "${_boost_candidate}/share/boost/BoostConfig.cmake")
+            list(APPEND CMAKE_PREFIX_PATH "${_boost_candidate}")
+            message(STATUS "Auto-detected Boost vcpkg: ${_boost_candidate}")
+            break()
+        endif()
+    endforeach()
 endif()
 
 find_package(JNI REQUIRED)
