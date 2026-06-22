@@ -2,6 +2,7 @@
 FROM alpine:3.22 AS builder
 
 ENV VCPKG_FORCE_SYSTEM_BINARIES=1
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
 
 RUN apk add --no-cache \
     build-base ninja git perl zip unzip curl tar pkgconfig linux-headers bash python3 py3-pip autoconf \
@@ -41,6 +42,7 @@ RUN mkdir awsmock-lrt/lib/ && \
 RUN cmake -B awsmock-lrt/cmake-build-release -S awsmock-lrt \
         -DCMAKE_BUILD_TYPE=Release \
         -DAWSMOCK_VCPKG_DIR=/build/awsmock/cmake-build-release/vcpkg_installed/x64-linux-release \
+        -DJAVA_HOME="$JAVA_HOME" \
         -G Ninja && \
     cmake --build awsmock-lrt/cmake-build-release --parallel
 
