@@ -13,9 +13,7 @@
 
 namespace Awsmock::Lrt {
 
-    LambdaCppRuntime::LambdaCppRuntime(const std::string &libPath,
-                                     const std::string &handler,
-                                     const std::map<std::string, std::string> &envVars) {
+    LambdaCppRuntime::LambdaCppRuntime(const std::string &libPath,const std::string &handler,const std::map<std::string, std::string> &envVars) {
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
 

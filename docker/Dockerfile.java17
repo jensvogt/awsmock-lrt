@@ -1,0 +1,22 @@
+FROM eclipse-temurin:17-jdk-alpine
+
+RUN apk add --no-cache ca-certificates
+
+RUN mkdir -p \
+        /usr/local/awsmock/bin \
+        /usr/local/awsmock/lib/java \
+        /usr/local/awsmock/etc \
+        /usr/local/awsmock/log
+
+COPY cmake-build-release/awsmock-lrt /usr/local/awsmock/bin/awsmock-lrt
+RUN chmod +x /usr/local/awsmock/bin/awsmock-lrt
+
+COPY docker/lib/java/ /usr/local/awsmock/lib/java/
+COPY docker/awsmock.json /usr/local/awsmock/etc/awsmock.json
+
+ENV PATH="/usr/local/awsmock/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${JAVA_HOME}/lib/server"
+
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/awsmock/bin/awsmock-lrt"]

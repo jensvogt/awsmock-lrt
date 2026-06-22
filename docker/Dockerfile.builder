@@ -32,7 +32,8 @@ RUN cmake -B awsmock/cmake-build-release -S awsmock \
 
 COPY . /build/awsmock-lrt
 
-RUN cp awsmock/cmake-build-release/libawsmockcore.a awsmock-lrt/lib/ && \
+RUN mkdir awsmock-lrt/lib/ && \
+    cp awsmock/cmake-build-release/libawsmockcore.a awsmock-lrt/lib/ && \
     cp awsmock/cmake-build-release/libawsmockdb.a   awsmock-lrt/lib/ && \
     cp awsmock/cmake-build-release/libawsmockdto.a  awsmock-lrt/lib/
 
