@@ -13,16 +13,13 @@
 // Boost includes
 #include <boost/program_options.hpp>
 
-// Boost includes
-#include <boost/beast/http/verb.hpp>
-
 // Project includes
-#include <awsmock/core/HttpSocket.h>
 #include <awsmock/core/config/Configuration.h>
 #include <awsmock/core/scheduler/Scheduler.h>
-#include <awsmock/lrt/LambdaRuntimeFactory.h>
 #include <awsmock/lrt/HttpHandler.h>
 #include <awsmock/lrt/HttpServer.h>
+#include <awsmock/lrt/LambdaRuntimeFactory.h>
+#include <awsmock/lrt/StatusReporter.h>
 
 namespace po = boost::program_options;
 
@@ -35,21 +32,6 @@ namespace {
 #define DEFAULT_LOG_LEVEL "debug"
 #define DEFAULT_RUNTIME "java21"
 
-static void ReportGrtStatus(const Awsmock::Lrt::ILambdaRuntime &runtime, const std::string &functionName, const int port, const std::string &managerHost, const int managerPort) {
-    try {
-        Awsmock::Dto::Lambda::LambdaStatus status = runtime.getStatus();
-        status.functionName = functionName;
-        status.port = port;
-        const std::map<std::string, std::string> headers = {
-                {"x-awsmock-target", "lambda"},
-                {"x-awsmock-action", "lambda-runtime-status"},
-        };
-        Awsmock::Core::HttpSocket::SendJson(http::verb::post, managerHost, managerPort, "/", status.ToJson(), headers);
-        log_debug << "GRT status reported to manager, function: " << functionName;
-    } catch (const std::exception &ex) {
-        log_warning << "GRT status report failed: " << ex.what();
-    }
-}
 
 // Parse "KEY=VALUE" strings into a map.
 static std::map<std::string, std::string> parseEnvVars(const std::vector<std::string> &raw) {
@@ -182,10 +164,12 @@ int main(const int argc, char *argv[]) {
     const auto managerHost = Awsmock::Core::Configuration::instance().getOr<std::string>("awsmock.gateway.http.host", "localhost");
     const int managerPort = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.gateway.http.port", 4566);
     const int reportPeriod = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.modules.lambda.lambda.report-period", 30);
+    Awsmock::Lrt::StatusReporter::initialize(*runtime_ptr, functionName, port, managerHost, managerPort);
+
     boost::asio::io_context schedulerIoc;
     auto workGuard = boost::asio::make_work_guard(schedulerIoc);
     Awsmock::Core::Scheduler::initialize(schedulerIoc);
-    Awsmock::Core::Scheduler::instance().AddTask("grt-status-reporter", [&] { ReportGrtStatus(*runtime_ptr, functionName, port, managerHost, managerPort); }, reportPeriod, reportPeriod);
+    Awsmock::Core::Scheduler::instance().AddTask("grt-status-reporter", [] { Awsmock::Lrt::StatusReporter::instance().reportStatus(); }, reportPeriod, reportPeriod);
     std::thread schedulerThread([&] { schedulerIoc.run(); });
 
     if (lifetime > 0) {

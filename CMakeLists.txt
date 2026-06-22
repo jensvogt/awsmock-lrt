@@ -28,7 +28,8 @@ find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
 
 set(GRT_SOURCES src/main.cpp src/LambdaJvmRuntime.cpp src/LambdaProcessRuntime.cpp src/LambdaNodeRuntime.cpp
-        src/LambdaPythonRuntime.cpp src/LambdaCppRuntime.cpp src/HttpServer.cpp src/HttpHandler.cpp)
+        src/LambdaPythonRuntime.cpp src/LambdaCppRuntime.cpp src/HttpServer.cpp src/HttpHandler.cpp
+        src/StatusReporter.cpp)
 set(GRT_LIBS lib/)
 
 add_executable(awsmock-lrt ${GRT_SOURCES})

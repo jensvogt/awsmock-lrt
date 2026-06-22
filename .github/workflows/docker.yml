@@ -64,6 +64,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - runtime: java17
+            dockerfile: docker/Dockerfile.java17
           - runtime: java21
             dockerfile: docker/Dockerfile.java21
           - runtime: java25
@@ -76,6 +78,10 @@ jobs:
             dockerfile: docker/Dockerfile.nodejs24
           - runtime: python312
             dockerfile: docker/Dockerfile.python312
+          - runtime: python313
+            dockerfile: docker/Dockerfile.python313
+          - runtime: python314
+            dockerfile: docker/Dockerfile.python314
           - runtime: provided
             dockerfile: docker/Dockerfile.provided
 
