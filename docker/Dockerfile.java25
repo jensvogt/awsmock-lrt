@@ -43,6 +43,7 @@ RUN mkdir awsmock-lrt/lib/ && \
 RUN cmake -B awsmock-lrt/cmake-build-release -S awsmock-lrt \
         -DCMAKE_BUILD_TYPE=Release \
         -DAWSMOCK_VCPKG_DIR=/build/awsmock/cmake-build-release/vcpkg_installed/x64-linux-release \
+        -DJAVA_HOME="$JAVA_HOME" \
         -G Ninja && \
     cmake --build awsmock-lrt/cmake-build-release --parallel
 
