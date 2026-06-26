@@ -56,28 +56,34 @@ int main(const int argc, char *argv[]) {
     std::string runtimeLibDir = "/usr/local/awsmock/lib/java";
     std::string nodeExecutable = "node";
     std::string pythonExecutable = "python3";
+    std::string managerHost = "host.docker.internal";
     int port = 8080;
     int lifetime = 0;
+    int managerPort = 4566;
+    int reportPeriod = 30;
     std::vector<std::string> rawEnv;
     std::vector<std::string> jvmArgs;
 
     po::options_description desc("awsmock-lrt options", 256);
     // clang-format off
     desc.add_options()("help,h", "Show help message")
-    ("code-path,c",      po::value<std::string>(&codePath)->required(),                              "Path to the Lambda code artifact (JAR, .so, or source directory)")
-    ("handler,H",        po::value<std::string>(&handler)->required(),                               "Handler identifier (format depends on runtime)")
-    ("function-name,f",  po::value<std::string>(&functionName)->default_value(""),                "Lambda function name")
-    ("address,a",        po::value<std::string>(&address)->default_value(address),                   "Bind address (default: 0.0.0.0)")
-    ("port,p",           po::value<int>(&port)->default_value(port),                                 "HTTP port to listen on (default: 8080)")
-    ("lifetime,l",       po::value<int>(&lifetime)->default_value(lifetime),                         "Runtime lifetime in seconds (0 = run forever)")
-    ("env,e",            po::value<std::vector<std::string>>(&rawEnv)->composing(),                  "Environment variable: KEY=VALUE (repeatable)")
-    ("jvm-arg,J",        po::value<std::vector<std::string>>(&jvmArgs)->composing(),                 "Extra JVM option, e.g. -Xmx512m (repeatable, Java only)")
-    ("runtime,r",        po::value<std::string>(&runtime)->default_value(runtime),                   "Runtime identifier: java21, nodejs20.x, python3.12, provided …")
-    ("runtime-lib-dir,R",po::value<std::string>(&runtimeLibDir)->default_value(runtimeLibDir),       "Directory with AWS Lambda runtime JARs (Java only)")
-    ("node-executable,n",po::value<std::string>(&nodeExecutable)->default_value(nodeExecutable),     "Node.js binary name or path (default: node)")
-    ("python-executable,y",po::value<std::string>(&pythonExecutable)->default_value(pythonExecutable),"Python binary name or path (default: python3)")
-    ("config,C",         po::value<std::string>(&configFile)->default_value(configFile),             "Configuration file name")
-    ("loglevel,L",       po::value<std::string>(&logLevel)->default_value(logLevel),                 "Logging level");
+    ("code-path,c",        po::value<std::string>(&codePath)->required(),                              "Path to the Lambda code artifact (JAR, .so, or source directory)")
+    ("handler,H",          po::value<std::string>(&handler)->required(),                               "Handler identifier (format depends on runtime)")
+    ("function-name,f",    po::value<std::string>(&functionName)->default_value(""),                "Lambda function name")
+    ("address,a",          po::value<std::string>(&address)->default_value(address),                   "Bind address (default: 0.0.0.0)")
+    ("port,p",             po::value<int>(&port)->default_value(port),                                 "HTTP port to listen on (default: 8080)")
+    ("lifetime,l",         po::value<int>(&lifetime)->default_value(lifetime),                         "Runtime lifetime in seconds (0 = run forever)")
+    ("env,e",              po::value<std::vector<std::string>>(&rawEnv)->composing(),                  "Environment variable: KEY=VALUE (repeatable)")
+    ("jvm-arg,J",          po::value<std::vector<std::string>>(&jvmArgs)->composing(),                 "Extra JVM option, e.g. -Xmx512m (repeatable, Java only)")
+    ("runtime,r",          po::value<std::string>(&runtime)->default_value(runtime),                   "Runtime identifier: java21, nodejs20.x, python3.12, provided …")
+    ("runtime-lib-dir,R",  po::value<std::string>(&runtimeLibDir)->default_value(runtimeLibDir),       "Directory with AWS Lambda runtime JARs (Java only)")
+    ("node-executable,n",  po::value<std::string>(&nodeExecutable)->default_value(nodeExecutable),     "Node.js binary name or path (default: node)")
+    ("python-executable,y",po::value<std::string>(&pythonExecutable)->default_value(pythonExecutable), "Python binary name or path (default: python3)")
+    ("manager-host,m",     po::value<std::string>(&managerHost)->default_value(managerHost),           "Hostname of the manager (default: host.docker.internal)")
+    ("manager-port,P",     po::value<int>(&managerPort)->default_value(managerPort),                   "Manager port (default: 4566)")
+    ("report-period,R",    po::value<int>(&reportPeriod)->default_value(reportPeriod),                 "Manager report period (default: 30)")
+    ("config,C",           po::value<std::string>(&configFile)->default_value(configFile),             "Configuration file name")
+    ("loglevel,L",         po::value<std::string>(&logLevel)->default_value(logLevel),                 "Logging level");
     // clang-format on
 
     try {
@@ -107,19 +113,22 @@ int main(const int argc, char *argv[]) {
         }
     }
 
-    std::cout << "code-path : " << codePath << '\n'
+    std::cout
+            << "code-path : " << codePath << '\n'
             << "name      : " << functionName << '\n'
             << "handler   : " << handler << '\n'
             << "runtime   : " << runtime << '\n'
             << "port      : " << port << '\n'
             << "lifetime  : " << lifetime << '\n'
             << "config    : " << configFile << '\n'
-            << "loglevel  : " << logLevel << '\n';
+            << "loglevel  : " << logLevel << '\n'
+            << "manager   : " << managerHost << ":" << managerPort << '\n'
+            << "period    : " << reportPeriod << '\n';
     for (const auto &[k, v]: envVars) std::cout << "  env     : " << k << '=' << v << '\n';
     for (const auto &a: jvmArgs) std::cout << "  jvm     : " << a << '\n';
     for (const auto &j: runtimeJars) std::cout << "  rt-jar  : " << j << '\n';
 
-    // Block SIGINT/SIGTERM before spawning any threads so every thread inherits the mask.
+    // Block SIGINT/SIGTERM before spawning any threads, so every thread inherits the mask.
     sigset_t mask;
     sigemptyset(&mask);
     sigaddset(&mask, SIGINT);
@@ -138,13 +147,11 @@ int main(const int argc, char *argv[]) {
     params.runtimeJars = runtimeJars;
     params.nodeExecutable = nodeExecutable;
     params.pythonExecutable = pythonExecutable;
+    params.managerHost = managerHost;
+    params.managerPort = managerPort;
+    params.reportPeriod = reportPeriod;
 
-    // Periodic status reporter
-    const auto managerHost = Awsmock::Core::Configuration::instance().getOr<std::string>("awsmock.gateway.http.host", "localhost");
-    const int managerPort = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.gateway.http.port", 4566);
-    const int reportPeriod = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.modules.lambda.lambda.report-period", 30);
-
-    // Phase 1: StatusReporter up before JVM/runtime start so "starting" status
+    // Phase 1: StatusReporter up before JVM/runtime start, so "starting" status
     // can be reported during the (potentially slow) runtime initialization.
     Awsmock::Lrt::StatusReporter::initialize(functionName, port, managerHost, managerPort);
 
