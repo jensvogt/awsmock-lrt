@@ -40,6 +40,11 @@ namespace Awsmock::Lrt {
 
         // Python runtimes
         std::string pythonExecutable = "python3";
+
+        // Manager endpoint
+        std::string managerHost = "host.docker.internal";
+        int managerPort = 4566;
+        int reportPeriod = 30;
     };
 
     /**

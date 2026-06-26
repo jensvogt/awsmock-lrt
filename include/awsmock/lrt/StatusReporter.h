@@ -28,8 +28,7 @@ namespace Awsmock::Lrt {
      */
     class StatusReporter {
 
-      public:
-
+    public:
         /**
          * @brief Initialize the singleton before the runtime exists (phase 1).
          *
@@ -39,7 +38,7 @@ namespace Awsmock::Lrt {
          *
          * @param functionName lambda function name
          * @param port         local HTTP port
-         * @param managerHost  AwsMock manager host
+         * @param managerHost  AwsMock manager endpoint URL
          * @param managerPort  AwsMock manager port
          * @return reference to the singleton instance
          */
@@ -51,10 +50,10 @@ namespace Awsmock::Lrt {
          * Equivalent to calling initialize(functionName, port, managerHost, managerPort)
          * followed by setRuntime(runtime).
          *
-         * @param runtime      lambda runtime instance
-         * @param functionName lambda function name
-         * @param port         local HTTP port
-         * @param managerHost  AwsMock manager host
+         * @param runtime         lambda runtime instance
+         * @param functionName    lambda function name
+         * @param port            local HTTP port
+         * @param managerHost  AwsMock manager endpoint URL
          * @param managerPort  AwsMock manager port
          * @return reference to the singleton instance
          */
@@ -83,12 +82,14 @@ namespace Awsmock::Lrt {
 
         // Non-copyable, non-movable
         StatusReporter(const StatusReporter &) = delete;
+
         StatusReporter &operator=(const StatusReporter &) = delete;
+
         StatusReporter(StatusReporter &&) = delete;
+
         StatusReporter &operator=(StatusReporter &&) = delete;
 
-      private:
-
+    private:
         /**
          * @brief Channeled logger
          */
@@ -101,13 +102,13 @@ namespace Awsmock::Lrt {
 
         const ILambdaRuntime *_runtime = nullptr;
         std::string _functionName;
-        int _port;
         std::string _managerHost;
-        int _managerPort;
         std::string _instanceId;
+        int _port;
+        int _managerPort;
 
         static StatusReporter *_instance;
         static std::mutex _mutex;
     };
 
-}// namespace Awsmock::Lrt
+} // namespace Awsmock::Lrt
