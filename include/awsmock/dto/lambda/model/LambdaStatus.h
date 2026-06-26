@@ -40,7 +40,7 @@ namespace Awsmock::Dto::Lambda {
         std::string functionName;
 
         /**
-         * @brief HTTP port the GRT is listening on — identifies the instance within a function
+         * @brief HTTP port the GRT is listening to — identifies the instance within a function
          */
         int port{};
 
@@ -49,7 +49,22 @@ namespace Awsmock::Dto::Lambda {
          */
         std::string instanceId;
 
-      private:
+        /**
+         * @brief Last start timestamp
+         */
+        std::chrono::system_clock::time_point lastStart;
+
+        /**
+         * @brief Last stop timestamp
+         */
+        std::chrono::system_clock::time_point lastStop;
+
+        /**
+         * @brief Last invocation timestamp
+         */
+        std::chrono::system_clock::time_point lastInvocation;
+
+    private:
 
         friend LambdaStatus tag_invoke(boost::json::value_to_tag<LambdaStatus>, boost::json::value const &v) {
             LambdaStatus r;
@@ -60,6 +75,9 @@ namespace Awsmock::Dto::Lambda {
             r.functionName = Core::Json::GetStringValue(v, "functionName");
             r.port = Core::Json::GetIntValue(v, "port");
             r.instanceId = Core::Json::GetStringValue(v, "instanceId");
+            r.lastStart = Core::Json::GetDatetimeValue(v, "lastStart");
+            r.lastStop = Core::Json::GetDatetimeValue(v, "lastStop");
+            r.lastInvocation = Core::Json::GetDatetimeValue(v, "lastInvocation");
             return r;
         }
 
@@ -72,6 +90,9 @@ namespace Awsmock::Dto::Lambda {
                     {"functionName", obj.functionName},
                     {"port", obj.port},
                     {"instanceId", obj.instanceId},
+                    {"lastStart", Core::DateTimeUtils::ToISO8601(obj.lastStart)},
+                    {"lastStop", Core::DateTimeUtils::ToISO8601(obj.lastStop)},
+                    {"lastInvocation", Core::DateTimeUtils::ToISO8601(obj.lastInvocation)},
             };
         }
     };

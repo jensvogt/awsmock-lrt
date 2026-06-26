@@ -11,11 +11,15 @@
 // POSIX includes
 #include <dlfcn.h>
 
+// Awsmock includes
+#include <awsmock/lrt/StatusReporter.h>
+
 namespace Awsmock::Lrt {
 
     LambdaCppRuntime::LambdaCppRuntime(const std::string &libPath,const std::string &handler,const std::map<std::string, std::string> &envVars) {
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
+        StatusReporter::instance().reportStatus();
 
         for (const auto &[k, v]: envVars)
             setenv(k.c_str(), v.c_str(), 1);
@@ -33,6 +37,8 @@ namespace Awsmock::Lrt {
         _freeFn = reinterpret_cast<FreeFn>(dlsym(_handle, "lambda_free"));
 
         _status.runtimeStatus = RuntimeStatus::idle;
+        _status.lastStart = std::chrono::system_clock::now();
+        StatusReporter::instance().reportStatus();
         log_info << "C++ runtime loaded, lib: " << libPath << ", symbol: " << symbol;
     }
 
@@ -52,7 +58,9 @@ namespace Awsmock::Lrt {
         const double elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
         _status.invocations++;
         _status.avgDuration += (elapsed - _status.avgDuration) / _status.invocations;
+        _status.lastInvocation = std::chrono::system_clock::now();
         _status.runtimeStatus = RuntimeStatus::idle;
+        StatusReporter::instance().reportStatus();
         return result;
     }
 
@@ -62,6 +70,9 @@ namespace Awsmock::Lrt {
             _handle = nullptr;
             _invokeFn = nullptr;
             _freeFn = nullptr;
+            _status.runtimeStatus = RuntimeStatus::stopped;
+            _status.lastStop = std::chrono::system_clock::now();
+            StatusReporter::instance().reportStatus();
             log_info << "C++ runtime unloaded";
         }
     }

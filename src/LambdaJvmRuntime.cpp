@@ -106,6 +106,7 @@ namespace Awsmock::Lrt {
             std::cout << "Handler mode: String function\n";
         }
         _status.runtimeStatus = RuntimeStatus::idle;
+        _status.lastStart = std::chrono::system_clock::now();
         StatusReporter::instance().reportStatus();
     }
 
@@ -123,15 +124,15 @@ namespace Awsmock::Lrt {
             result = invokeStringFunction(env, eventJson);
         const double elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
         _status.invocations++;
+        _status.lastInvocation = std::chrono::system_clock::now();
         _status.avgDuration += (elapsed - _status.avgDuration) / _status.invocations;
         _status.runtimeStatus = RuntimeStatus::idle;
         return result;
     }
 
     std::string LambdaJvmRuntime::invokeStringFunction(JNIEnv *env, const std::string &eventJson) {
-        jstring jEvent = env->NewStringUTF(eventJson.c_str());
-        auto jResult = reinterpret_cast<jstring>(
-                env->CallObjectMethod(_handlerInstance, _handleMethod, jEvent));
+        const auto jEvent = env->NewStringUTF(eventJson.c_str());
+        const auto jResult = reinterpret_cast<jstring>(env->CallObjectMethod(_handlerInstance, _handleMethod, jEvent));
         checkException(env);
 
         const char *chars = env->GetStringUTFChars(jResult, nullptr);
@@ -193,8 +194,8 @@ namespace Awsmock::Lrt {
 
         // System.exit(0): runs Java shutdown hooks, stops non-daemon threads, then
         // calls the native exit() — so this call does not return to C++.
-        if (jclass systemClass = _env->FindClass("java/lang/System")) {
-            if (jmethodID exitMethod = _env->GetStaticMethodID(systemClass, "exit", "(I)V")) {
+        if (const auto systemClass = _env->FindClass("java/lang/System")) {
+            if (const auto exitMethod = _env->GetStaticMethodID(systemClass, "exit", "(I)V")) {
                 log_info << "Starting graceful JVM shutdown";
                 _env->CallStaticVoidMethod(systemClass, exitMethod, static_cast<jint>(0));
             }
@@ -206,6 +207,7 @@ namespace Awsmock::Lrt {
 
         // Send status to manager
         _status.runtimeStatus = RuntimeStatus::stopped;
+        _status.lastStop = std::chrono::system_clock::now();
         StatusReporter::instance().reportStatus();
     }
 
@@ -223,8 +225,7 @@ namespace Awsmock::Lrt {
 
     JNIEnv *LambdaJvmRuntime::getEnv() {
         JNIEnv *env = nullptr;
-        const jint rc = _jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_8);
-        if (rc == JNI_EDETACHED) {
+        if (const jint rc = _jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_8); rc == JNI_EDETACHED) {
             if (_jvm->AttachCurrentThread(reinterpret_cast<void **>(&env), nullptr) != JNI_OK)
                 throw std::runtime_error("JNI AttachCurrentThread failed");
             // AttachCurrentThread leaves the context classloader null/bootstrap; set it
