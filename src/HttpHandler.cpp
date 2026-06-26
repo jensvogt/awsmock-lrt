@@ -24,7 +24,11 @@ namespace Awsmock::Lrt {
     }
 
     Response HttpHandler::handlePost(const Request &req) const {
-        if (const auto target = req.target(); target == "/invoke" || target.starts_with("/invoke/")) return handleInvoke(req);
+        if (const auto target = req.target();
+            target == "/invoke" ||
+            target.starts_with("/invoke/") ||
+            target.starts_with("/2015-03-31/functions/"))
+            return handleInvoke(req);
         return notFound(req);
     }
 

@@ -16,9 +16,11 @@
 #include <jni.h>
 
 // Awsmock includes
+#include <awsmock/core/SystemUtils.h>
 #include <awsmock/core/logging/LogStream.h>
 #include <awsmock/dto/lambda/model/LambdaStatus.h>
 #include <awsmock/lrt/ILambdaRuntime.h>
+#include <awsmock/lrt/StatusReporter.h>
 
 namespace Awsmock::Lrt {
 

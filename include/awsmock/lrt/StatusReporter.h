@@ -11,6 +11,8 @@
 
 // Boost includes
 #include <boost/beast/http/verb.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 // AwsMock includes
 #include <awsmock/lrt/ILambdaRuntime.h>
@@ -29,16 +31,41 @@ namespace Awsmock::Lrt {
       public:
 
         /**
-         * @brief Initialize the singleton (call once at startup).
+         * @brief Initialize the singleton before the runtime exists (phase 1).
          *
-         * @param runtime   lambda runtime instance
+         * Call this early so the reporter can send "starting" status while the
+         * runtime is still being created. Follow up with setRuntime() once the
+         * runtime is ready.
+         *
          * @param functionName lambda function name
-         * @param port      local HTTP port
-         * @param managerHost AwsMock manager host
-         * @param managerPort AwsMock manager port
+         * @param port         local HTTP port
+         * @param managerHost  AwsMock manager host
+         * @param managerPort  AwsMock manager port
          * @return reference to the singleton instance
          */
-        static StatusReporter &initialize(const ILambdaRuntime &runtime,const std::string &functionName,int port,const std::string &managerHost,int managerPort);
+        static StatusReporter &initialize(const std::string &functionName, int port, const std::string &managerHost, int managerPort);
+
+        /**
+         * @brief Initialize the singleton with a runtime in one step (convenience overload).
+         *
+         * Equivalent to calling initialize(functionName, port, managerHost, managerPort)
+         * followed by setRuntime(runtime).
+         *
+         * @param runtime      lambda runtime instance
+         * @param functionName lambda function name
+         * @param port         local HTTP port
+         * @param managerHost  AwsMock manager host
+         * @param managerPort  AwsMock manager port
+         * @return reference to the singleton instance
+         */
+        static StatusReporter &initialize(const ILambdaRuntime &runtime, const std::string &functionName, int port, const std::string &managerHost, int managerPort);
+
+        /**
+         * @brief Bind the runtime after phase-1 initialization.
+         *
+         * @param runtime lambda runtime instance (must outlive this singleton)
+         */
+        void setRuntime(const ILambdaRuntime &runtime);
 
         /**
          * @brief Access the singleton instance.
@@ -68,21 +95,16 @@ namespace Awsmock::Lrt {
         mutable logger_t _logger{boost::log::keywords::channel = "LambdaRuntime"};
 
         /**
-         * @brief Private constructor
-         *
-         * @param runtime lambda runtime
-         * @param functionName name of the lambda function
-         * @param port lambda private port
-         * @param managerHost name of the manager host
-         * @param managerPort port of the manager
+         * @brief Private constructor (phase-1, no runtime yet).
          */
-        StatusReporter(const ILambdaRuntime &runtime,std::string functionName,int port,const std::string &managerHost,int managerPort);
+        StatusReporter(std::string functionName, int port, const std::string &managerHost, int managerPort);
 
-        const ILambdaRuntime &_runtime;
+        const ILambdaRuntime *_runtime = nullptr;
         std::string _functionName;
         int _port;
         std::string _managerHost;
         int _managerPort;
+        std::string _instanceId;
 
         static StatusReporter *_instance;
         static std::mutex _mutex;

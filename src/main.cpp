@@ -1,4 +1,3 @@
-
 // C++ includes
 #include <cerrno>
 #include <csignal>
@@ -93,7 +92,7 @@ int main(const int argc, char *argv[]) {
 
     } catch (const po::error &e) {
         std::cerr << "Error: " << e.what() << '\n'
-                  << desc << '\n';
+                << desc << '\n';
         return 1;
     }
 
@@ -109,13 +108,13 @@ int main(const int argc, char *argv[]) {
     }
 
     std::cout << "code-path : " << codePath << '\n'
-              << "name      : " << functionName << '\n'
-              << "handler   : " << handler << '\n'
-              << "runtime   : " << runtime << '\n'
-              << "port      : " << port << '\n'
-              << "lifetime  : " << lifetime << '\n'
-              << "config    : " << configFile << '\n'
-              << "loglevel  : " << logLevel << '\n';
+            << "name      : " << functionName << '\n'
+            << "handler   : " << handler << '\n'
+            << "runtime   : " << runtime << '\n'
+            << "port      : " << port << '\n'
+            << "lifetime  : " << lifetime << '\n'
+            << "config    : " << configFile << '\n'
+            << "loglevel  : " << logLevel << '\n';
     for (const auto &[k, v]: envVars) std::cout << "  env     : " << k << '=' << v << '\n';
     for (const auto &a: jvmArgs) std::cout << "  jvm     : " << a << '\n';
     for (const auto &j: runtimeJars) std::cout << "  rt-jar  : " << j << '\n';
@@ -140,9 +139,19 @@ int main(const int argc, char *argv[]) {
     params.nodeExecutable = nodeExecutable;
     params.pythonExecutable = pythonExecutable;
 
+    // Periodic status reporter
+    const auto managerHost = Awsmock::Core::Configuration::instance().getOr<std::string>("awsmock.gateway.http.host", "localhost");
+    const int managerPort = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.gateway.http.port", 4566);
+    const int reportPeriod = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.modules.lambda.lambda.report-period", 30);
+
+    // Phase 1: StatusReporter up before JVM/runtime start so "starting" status
+    // can be reported during the (potentially slow) runtime initialization.
+    Awsmock::Lrt::StatusReporter::initialize(functionName, port, managerHost, managerPort);
+
     std::unique_ptr<Awsmock::Lrt::ILambdaRuntime> runtime_ptr;
     try {
         runtime_ptr = Awsmock::Lrt::LambdaRuntimeFactory::create(runtime, params);
+        Awsmock::Lrt::StatusReporter::instance().setRuntime(*runtime_ptr);// Phase 2
     } catch (const std::exception &ex) {
         std::cerr << "Failed to create runtime '" << runtime << "': " << ex.what() << '\n';
         return 1;
@@ -159,12 +168,6 @@ int main(const int argc, char *argv[]) {
     httpHandler.registerRoutes();
     server.start();
     log_info << "Server started. Waiting for invocations.";
-
-    // Periodic status reporter
-    const auto managerHost = Awsmock::Core::Configuration::instance().getOr<std::string>("awsmock.gateway.http.host", "localhost");
-    const int managerPort = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.gateway.http.port", 4566);
-    const int reportPeriod = Awsmock::Core::Configuration::instance().getOr<int>("awsmock.modules.lambda.lambda.report-period", 30);
-    Awsmock::Lrt::StatusReporter::initialize(*runtime_ptr, functionName, port, managerHost, managerPort);
 
     boost::asio::io_context schedulerIoc;
     auto workGuard = boost::asio::make_work_guard(schedulerIoc);
@@ -190,10 +193,13 @@ int main(const int argc, char *argv[]) {
     Awsmock::Core::Scheduler::instance().Shutdown();
     workGuard.reset();
     schedulerIoc.stop();
-    if (schedulerThread.joinable()) schedulerThread.join();
+    if (schedulerThread.joinable()) {
+        schedulerThread.join();
+    }
     server.setStatus(RuntimeStatus::stopped);
     server.stop();
     runtime_ptr->shutdown();
+    Awsmock::Lrt::StatusReporter::instance().reportStatus();
 
     return 0;
 }
