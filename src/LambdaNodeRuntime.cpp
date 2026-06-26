@@ -5,11 +5,15 @@
 #include <awsmock/lrt/LambdaNodeRuntime.h>
 
 // C++ includes
+#include <chrono>
 #include <fstream>
 #include <stdexcept>
 
 // POSIX includes
 #include <unistd.h>
+
+// Awsmock includes
+#include <awsmock/lrt/StatusReporter.h>
 
 namespace Awsmock::Lrt {
 
@@ -58,16 +62,29 @@ process.stdin.on('end', () => process.exit(0));
                                        const std::string &nodeExecutable) {
         _shimPath = "/tmp/awsmock-grt-node-" + std::to_string(getpid()) + ".js";
         writeShim(codePath, handler);
+
+        _status.runtimeStatus = RuntimeStatus::starting;
+        _status.pid = Core::SystemUtils::GetPid();
+        StatusReporter::instance().reportStatus();
+
         spawn(nodeExecutable, {_shimPath, codePath, handler}, envVars);
+
+        _status.lastStart = std::chrono::system_clock::now();
+        StatusReporter::instance().reportStatus();
+
         log_info << "Node.js runtime started, handler: " << handler << ", code: " << codePath;
     }
 
     LambdaNodeRuntime::~LambdaNodeRuntime() {
+        _status.runtimeStatus = RuntimeStatus::stopped;
+        _status.lastStop = std::chrono::system_clock::now();
+        StatusReporter::instance().reportStatus();
+
         if (!_shimPath.empty())
             ::unlink(_shimPath.c_str());
     }
 
-    void LambdaNodeRuntime::writeShim(const std::string & /*codePath*/, const std::string & /*handler*/) {
+    void LambdaNodeRuntime::writeShim(const std::string & /*codePath*/, const std::string & /*handler*/) const {
         std::ofstream f(_shimPath);
         if (!f)
             throw std::runtime_error("Cannot write Node.js shim to " + _shimPath);

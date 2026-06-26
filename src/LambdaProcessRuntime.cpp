@@ -9,6 +9,9 @@
 #include <stdexcept>
 #include <string>
 
+// Awsmock includes
+#include <awsmock/lrt/StatusReporter.h>
+
 // POSIX includes
 #include <cerrno>
 #include <csignal>
@@ -90,7 +93,9 @@ namespace Awsmock::Lrt {
         const double elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
         _status.invocations++;
         _status.avgDuration += (elapsed - _status.avgDuration) / _status.invocations;
+        _status.lastInvocation = std::chrono::system_clock::now();
         _status.runtimeStatus = RuntimeStatus::idle;
+        StatusReporter::instance().reportStatus();
         return result;
     }
 

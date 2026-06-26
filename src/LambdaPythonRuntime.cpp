@@ -5,11 +5,15 @@
 #include <awsmock/lrt/LambdaPythonRuntime.h>
 
 // C++ includes
+#include <chrono>
 #include <fstream>
 #include <stdexcept>
 
 // POSIX includes
 #include <unistd.h>
+
+// Awsmock includes
+#include <awsmock/lrt/StatusReporter.h>
 
 namespace Awsmock::Lrt {
 
@@ -54,11 +58,24 @@ for line in sys.stdin:
                                            const std::string &pythonExecutable) {
         _shimPath = "/tmp/awsmock-grt-python-" + std::to_string(getpid()) + ".py";
         writeShim();
+
+        _status.runtimeStatus = RuntimeStatus::starting;
+        _status.pid = Core::SystemUtils::GetPid();
+        StatusReporter::instance().reportStatus();
+
         spawn(pythonExecutable, {_shimPath, codePath, handler}, envVars);
+
+        _status.lastStart = std::chrono::system_clock::now();
+        StatusReporter::instance().reportStatus();
+
         log_info << "Python runtime started, handler: " << handler << ", code: " << codePath;
     }
 
     LambdaPythonRuntime::~LambdaPythonRuntime() {
+        _status.runtimeStatus = RuntimeStatus::stopped;
+        _status.lastStop = std::chrono::system_clock::now();
+        StatusReporter::instance().reportStatus();
+
         if (!_shimPath.empty())
             ::unlink(_shimPath.c_str());
     }
