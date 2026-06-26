@@ -44,6 +44,11 @@ namespace Awsmock::Dto::Lambda {
          */
         int port{};
 
+        /**
+         * @brief Unique ID that identifies this runtime instance across restarts and scale-out
+         */
+        std::string instanceId;
+
       private:
 
         friend LambdaStatus tag_invoke(boost::json::value_to_tag<LambdaStatus>, boost::json::value const &v) {
@@ -54,6 +59,7 @@ namespace Awsmock::Dto::Lambda {
             r.avgDuration = Core::Json::GetDoubleValue(v, "avgDuration");
             r.functionName = Core::Json::GetStringValue(v, "functionName");
             r.port = Core::Json::GetIntValue(v, "port");
+            r.instanceId = Core::Json::GetStringValue(v, "instanceId");
             return r;
         }
 
@@ -65,6 +71,7 @@ namespace Awsmock::Dto::Lambda {
                     {"avgDuration", obj.avgDuration},
                     {"functionName", obj.functionName},
                     {"port", obj.port},
+                    {"instanceId", obj.instanceId},
             };
         }
     };

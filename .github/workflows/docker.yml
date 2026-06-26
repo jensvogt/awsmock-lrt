@@ -108,12 +108,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/awsmock-lrt
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/awsmock-lrt-${{ matrix.runtime }}
           tags: |
-            type=raw,value=${{ matrix.runtime }},enable={{is_default_branch}}
-            type=semver,pattern={{version}},suffix=-${{ matrix.runtime }}
-            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.runtime }}
-            type=ref,event=pr,suffix=-${{ matrix.runtime }}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=pr
 
       - name: Build and push
         uses: docker/build-push-action@v6

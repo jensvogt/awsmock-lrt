@@ -6,7 +6,6 @@
 
 #include <awsmock/lrt/LambdaJvmRuntime.h>
 
-#include "awsmock/core/SystemUtils.h"
 
 namespace Awsmock::Lrt {
 
@@ -14,6 +13,7 @@ namespace Awsmock::Lrt {
 
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
+        StatusReporter::instance().reportStatus();
 
         parseHandler(handler);
 
@@ -21,11 +21,11 @@ namespace Awsmock::Lrt {
             setenv(key.c_str(), value.c_str(), 1);
         }
 
-        // Build classpath: runtime JARs first (so they shadow nothing in the customer JAR),
-        // then the customer JAR.
+        // Build classpath: runtime JARs first (so they shadow nothing in the customer JAR), then the customer JAR.
         std::string cp = jarPath;
-        for (const auto &jar: runtimeJars)
+        for (const auto &jar: runtimeJars){
             cp += ":" + jar;
+        }
         std::string cpOption = "-Djava.class.path=" + cp;
         std::vector<JavaVMOption> opts;
         opts.push_back({cpOption.data(), nullptr});
@@ -43,7 +43,7 @@ namespace Awsmock::Lrt {
 
         // Pin the system classloader as the context classloader of the JVM's main thread.
         // JNI-created JVMs leave the context classloader unset (null/bootstrap), so Spring
-        // threads inherit null and SerializeUtil.loadCustomerClass fails with
+        // threads inherit null, and SerializeUtil.loadCustomerClass fails with
         // ClassNotFoundException for classes that ARE on the system classpath.
         setSystemClassLoader(_env);
 
@@ -96,16 +96,17 @@ namespace Awsmock::Lrt {
             checkException(_env);
             _baosClass = static_cast<jclass>(_env->NewGlobalRef(localBaos));
             _env->DeleteLocalRef(localBaos);
-
             std::cout << "Handler mode: RequestStreamHandler (FunctionInvoker path)\n";
+
         } else {
+
             // String handleRequest(String)  — or whatever _methodName is
             _handleMethod = _env->GetMethodID(_handlerClass, _methodName.c_str(), "(Ljava/lang/String;)Ljava/lang/String;");
             checkException(_env);
-
             std::cout << "Handler mode: String function\n";
         }
         _status.runtimeStatus = RuntimeStatus::idle;
+        StatusReporter::instance().reportStatus();
     }
 
     // ── invoke ────────────────────────────────────────────────────────────────────
@@ -181,6 +182,10 @@ namespace Awsmock::Lrt {
         }
         // shutdown() already terminated the process via System.exit(0); nothing to do.
         if (_jvm) _jvm->DestroyJavaVM();
+
+        // Send status to manager
+        _status.runtimeStatus = RuntimeStatus::stopped;
+        StatusReporter::instance().reportStatus();
     }
 
     void LambdaJvmRuntime::shutdown() {
@@ -198,6 +203,10 @@ namespace Awsmock::Lrt {
         _jvm->DestroyJavaVM();
         _jvm = nullptr;
         log_info << "JVM shutdown complete";
+
+        // Send status to manager
+        _status.runtimeStatus = RuntimeStatus::stopped;
+        StatusReporter::instance().reportStatus();
     }
 
     void LambdaJvmRuntime::parseHandler(const std::string &handler) {
@@ -237,13 +246,13 @@ namespace Awsmock::Lrt {
     }
 
     void LambdaJvmRuntime::setSystemClassLoader(JNIEnv *env) {
-        const jclass threadCls = env->FindClass("java/lang/Thread");
-        const jclass clCls = env->FindClass("java/lang/ClassLoader");
-        const jmethodID curThreadMid = env->GetStaticMethodID(threadCls, "currentThread", "()Ljava/lang/Thread;");
-        const jmethodID getSysCLMid = env->GetStaticMethodID(clCls, "getSystemClassLoader", "()Ljava/lang/ClassLoader;");
-        const jmethodID setCtxCLMid = env->GetMethodID(threadCls, "setContextClassLoader", "(Ljava/lang/ClassLoader;)V");
-        const jobject curThread = env->CallStaticObjectMethod(threadCls, curThreadMid);
-        const jobject sysCL = env->CallStaticObjectMethod(clCls, getSysCLMid);
+        const auto threadCls = env->FindClass("java/lang/Thread");
+        const auto clCls = env->FindClass("java/lang/ClassLoader");
+        const auto curThreadMid = env->GetStaticMethodID(threadCls, "currentThread", "()Ljava/lang/Thread;");
+        const auto getSysCLMid = env->GetStaticMethodID(clCls, "getSystemClassLoader", "()Ljava/lang/ClassLoader;");
+        const auto setCtxCLMid = env->GetMethodID(threadCls, "setContextClassLoader", "(Ljava/lang/ClassLoader;)V");
+        const auto curThread = env->CallStaticObjectMethod(threadCls, curThreadMid);
+        const auto sysCL = env->CallStaticObjectMethod(clCls, getSysCLMid);
         env->CallVoidMethod(curThread, setCtxCLMid, sysCL);
         env->DeleteLocalRef(curThread);
         env->DeleteLocalRef(sysCL);
