@@ -4,6 +4,7 @@
 
 // C++ includes
 #include <chrono>
+#include <cstdlib>
 
 // AwsMock includes
 #include <awsmock/lrt/StatusReporter.h>
@@ -16,8 +17,13 @@ namespace Awsmock::Lrt {
     std::mutex StatusReporter::_mutex;
 
     StatusReporter::StatusReporter(std::string functionName, const int port, const std::string &managerHost, const int managerPort)
-        : _functionName(std::move(functionName)), _port(port), _managerHost(managerHost), _managerPort(managerPort),
-          _instanceId(boost::uuids::to_string(boost::uuids::random_generator()())) {}
+        : _functionName(std::move(functionName)), _port(port), _managerHost(managerHost), _managerPort(managerPort) {
+        if (const char *env = std::getenv("AWSMOCK_INSTANCE_ID"); env && *env) {
+            _instanceId = env;
+        } else {
+            _instanceId = boost::uuids::to_string(boost::uuids::random_generator()());
+        }
+    }
 
     StatusReporter &StatusReporter::initialize(const std::string &functionName, const int port, const std::string &managerHost, const int managerPort) {
         std::lock_guard lock(_mutex);
