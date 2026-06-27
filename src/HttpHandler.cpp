@@ -23,9 +23,10 @@ namespace Awsmock::Lrt {
         return notFound(req);
     }
 
-    Response HttpHandler::handlePost(const Request &req) const {
-        if (const auto target = req.target();
-            target == "/invoke" ||
+    Response HttpHandler::handlePost(const Request &req) {
+        const auto target = req.target();
+        if (target == "/stop" || target.starts_with("/stop?")) return handleStop(req);
+        if (target == "/invoke" ||
             target.starts_with("/invoke/") ||
             target.starts_with("/2015-03-31/functions/"))
             return handleInvoke(req);
@@ -66,6 +67,22 @@ namespace Awsmock::Lrt {
             res.result(http::status::internal_server_error);
             _server.setStatus(RuntimeStatus::failed);
         }
+        return res;
+    }
+
+    Response HttpHandler::handleStop(const Request &req) {
+        log_info << "Stop requested via HTTP — sending SIGTERM";
+        _server.setStatus(RuntimeStatus::stopped);
+        // Notify the manager before the process starts tearing down.  For JVM
+        // runtimes System.exit() terminates the process during shutdown(), so
+        // the normal post-shutdown reportStatus() in main() is never reached.
+        StatusReporter::instance().reportStopped();
+        Response res{http::status::accepted, req.version()};
+        res.set(http::field::content_type, "application/json");
+        res.body() = R"({"message":"shutting down"})";
+        // SIGTERM is blocked on all threads; kill() merely queues it so the
+        // response is delivered before main()'s sigwait() picks it up.
+        kill(getpid(), SIGTERM);
         return res;
     }
 

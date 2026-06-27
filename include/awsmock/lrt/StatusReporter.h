@@ -80,6 +80,19 @@ namespace Awsmock::Lrt {
          */
         void reportStatus() const;
 
+        /**
+         * @brief Report a final "stopped" status to the AwsMock manager.
+         *
+         * Overrides the runtime's own runtimeStatus with `stopped` and stamps
+         * lastStop with the current time.  Call this before initiating shutdown so
+         * the manager is notified even when the runtime (e.g. JVM) terminates the
+         * process via System.exit() and the normal post-shutdown reportStatus()
+         * in main() is never reached.
+         *
+         * Catches and logs all exceptions so it is safe to call from any context.
+         */
+        void reportStopped() const;
+
         // Non-copyable, non-movable
         StatusReporter(const StatusReporter &) = delete;
 

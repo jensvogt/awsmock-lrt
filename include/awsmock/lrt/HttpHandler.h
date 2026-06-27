@@ -4,6 +4,10 @@
 
 #pragma once
 
+// C++ includes
+#include <csignal>
+#include <unistd.h>
+
 // Boost includes
 #include <boost/beast/http.hpp>
 
@@ -12,6 +16,7 @@
 #include <awsmock/dto/lambda/model/LambdaConfig.h>
 #include <awsmock/lrt/ILambdaRuntime.h>
 #include <awsmock/lrt/HttpServer.h>
+#include <awsmock/lrt/StatusReporter.h>
 
 namespace Awsmock::Lrt {
 
@@ -56,7 +61,7 @@ namespace Awsmock::Lrt {
         /**
          * @brief Dispatch all POST requests by path.
          */
-        Response handlePost(const Request &req) const;
+        Response handlePost(const Request &req);
 
         /**
          * @brief Dispatch all PUT requests by path.
@@ -68,6 +73,7 @@ namespace Awsmock::Lrt {
         Response handleStatus(const Request &req) const;
         Response handleConfig(const Request &req) const;
         Response handleInvoke(const Request &req) const;
+        Response handleStop(const Request &req);
 
         static Response notFound(const Request &req);
         static Response methodNotAllowed(const Request &req);
