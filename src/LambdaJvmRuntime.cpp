@@ -113,6 +113,8 @@ namespace Awsmock::Lrt {
     // ── invoke ────────────────────────────────────────────────────────────────────
 
     std::string LambdaJvmRuntime::invoke(const std::string &eventJson) {
+        log_debug << "Starting invocation";
+
         _status.runtimeStatus = RuntimeStatus::running;
         JNIEnv *env = getEnv();
         std::string result;
@@ -127,6 +129,7 @@ namespace Awsmock::Lrt {
         _status.lastInvocation = std::chrono::system_clock::now();
         _status.avgDuration += (elapsed - _status.avgDuration) / _status.invocations;
         _status.runtimeStatus = RuntimeStatus::idle;
+        log_debug << "Invocation finished, invocations: " << _status.invocations << ", avg duration: " << _status.avgDuration << "ms";
         return result;
     }
 
@@ -210,6 +213,7 @@ namespace Awsmock::Lrt {
         _status.runtimeStatus = RuntimeStatus::stopped;
         _status.lastStop = std::chrono::system_clock::now();
         StatusReporter::instance().reportStatus();
+        log_info << "Graceful JVM finished";
     }
 
     void LambdaJvmRuntime::parseHandler(const std::string &handler) {
