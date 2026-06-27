@@ -186,6 +186,7 @@ namespace Awsmock::Lrt {
 
         // Send status to manager
         _status.runtimeStatus = RuntimeStatus::stopped;
+        _status.lastStop = std::chrono::system_clock::now();
         StatusReporter::instance().reportStatus();
     }
 

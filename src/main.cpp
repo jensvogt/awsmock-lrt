@@ -81,7 +81,7 @@ int main(const int argc, char *argv[]) {
     ("python-executable,y",po::value<std::string>(&pythonExecutable)->default_value(pythonExecutable), "Python binary name or path (default: python3)")
     ("manager-host,m",     po::value<std::string>(&managerHost)->default_value(managerHost),           "Hostname of the manager (default: host.docker.internal)")
     ("manager-port,P",     po::value<int>(&managerPort)->default_value(managerPort),                   "Manager port (default: 4566)")
-    ("report-period,R",    po::value<int>(&reportPeriod)->default_value(reportPeriod),                 "Manager report period (default: 30)")
+    ("report-period,M",    po::value<int>(&reportPeriod)->default_value(reportPeriod),                 "Manager report period (default: 30)")
     ("config,C",           po::value<std::string>(&configFile)->default_value(configFile),             "Configuration file name")
     ("loglevel,L",         po::value<std::string>(&logLevel)->default_value(logLevel),                 "Logging level");
     // clang-format on
