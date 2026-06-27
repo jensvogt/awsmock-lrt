@@ -2,6 +2,9 @@
 // Created by vogje01 on 21/06/2026.
 //
 
+// C++ includes
+#include <chrono>
+
 // AwsMock includes
 #include <awsmock/lrt/StatusReporter.h>
 
@@ -62,6 +65,28 @@ namespace Awsmock::Lrt {
             log_debug << "Lambda runtime status reported to manager, function: " << _functionName;
         } catch (const std::exception &ex) {
             log_warning << "Lambda runtime status report failed: " << ex.what();
+        }
+    }
+
+    void StatusReporter::reportStopped() const {
+        try {
+            Dto::Lambda::LambdaStatus status;
+            if (_runtime) {
+                status = _runtime->getStatus();
+            }
+            status.runtimeStatus = RuntimeStatus::stopped;
+            status.lastStop = std::chrono::system_clock::now();
+            status.functionName = _functionName;
+            status.port = _port;
+            status.instanceId = _instanceId;
+            const std::map<std::string, std::string> headers = {
+                    {"x-awsmock-target", "lambda"},
+                    {"x-awsmock-action", "lambda-runtime-status"},
+            };
+            Core::HttpSocket::SendJson(http::verb::post, _managerHost, _managerPort, "/", status.ToJson(), headers);
+            log_info << "Lambda runtime stopped status reported to manager, function: " << _functionName;
+        } catch (const std::exception &ex) {
+            log_warning << "Lambda runtime stopped status report failed: " << ex.what();
         }
     }
 
