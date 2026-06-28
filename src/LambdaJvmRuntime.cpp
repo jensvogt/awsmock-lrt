@@ -3,6 +3,7 @@
 //
 
 #include <chrono>
+#include <pthread.h>
 
 #include <awsmock/lrt/LambdaJvmRuntime.h>
 
@@ -114,23 +115,55 @@ namespace Awsmock::Lrt {
 
     std::string LambdaJvmRuntime::invoke(const std::string &eventJson) {
         log_debug << "Starting invocation";
-
         _status.runtimeStatus = RuntimeStatus::running;
-        JNIEnv *env = getEnv();
-        std::string result;
 
-        const auto t0 = std::chrono::steady_clock::now();
-        if (_invokeMode == InvokeMode::RequestStreamHandler)
-            result = invokeStreamHandler(env, eventJson);
-        else
-            result = invokeStringFunction(env, eventJson);
-        const double elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+        // JNI calls from an attached native thread consume that thread's native stack,
+        // not the JVM's -Xss budget.  Boost.Asio io_context threads have a default
+        // native stack of ~8 MB on Linux — not enough for Spring Cloud Function's deep
+        // class-loading chain on first invocation, which causes a StackOverflowError.
+        // Run the JNI work on a dedicated pthread with a 32 MB stack.
+        struct JniWork {
+            LambdaJvmRuntime *self;
+            const std::string *ev;
+            std::string result;
+            std::exception_ptr ex;
+            double elapsed = 0.0;
+        };
+        JniWork work{this, &eventJson};
+
+        pthread_t tid;
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setstacksize(&attr, 32 * 1024 * 1024);
+        if (pthread_create(&tid, &attr, [](void *p) -> void * {
+                auto &w = *static_cast<JniWork *>(p);
+                try {
+                    JNIEnv *env = w.self->getEnv();
+                    const auto t0 = std::chrono::steady_clock::now();
+                    w.result = (w.self->_invokeMode == InvokeMode::RequestStreamHandler)
+                                       ? w.self->invokeStreamHandler(env, *w.ev)
+                                       : w.self->invokeStringFunction(env, *w.ev);
+                    w.elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+                } catch (...) {
+                    w.ex = std::current_exception();
+                }
+                // Always detach: this pthread was freshly created so getEnv() attached it.
+                w.self->_jvm->DetachCurrentThread();
+                return nullptr;
+            }, &work) != 0) {
+            throw std::runtime_error("pthread_create for JNI invocation failed");
+        }
+        pthread_attr_destroy(&attr);
+        pthread_join(tid, nullptr);
+
+        if (work.ex) std::rethrow_exception(work.ex);
+
         _status.invocations++;
         _status.lastInvocation = std::chrono::system_clock::now();
-        _status.avgDuration += (elapsed - _status.avgDuration) / _status.invocations;
+        _status.avgDuration += (work.elapsed - _status.avgDuration) / _status.invocations;
         _status.runtimeStatus = RuntimeStatus::idle;
         log_debug << "Invocation finished, invocations: " << _status.invocations << ", avg duration: " << _status.avgDuration << "ms";
-        return result;
+        return work.result;
     }
 
     std::string LambdaJvmRuntime::invokeStringFunction(JNIEnv *env, const std::string &eventJson) {
