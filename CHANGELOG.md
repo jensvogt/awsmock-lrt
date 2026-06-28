@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.2...v0.1.3) (2026-06-28)
+
+
+### Features
+
+* **initial-load:** using pthread 32mb stack size ([2d75bcd](https://github.com/jensvogt/awsmock-lrt/commit/2d75bcdc70c49acfc6dc08d06893affb9af7943a))
+
 ## [0.1.2](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.1...v0.1.2) (2026-06-28)
 
 
