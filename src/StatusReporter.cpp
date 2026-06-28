@@ -4,7 +4,6 @@
 
 // C++ includes
 #include <chrono>
-#include <cstdlib>
 
 // AwsMock includes
 #include <awsmock/lrt/StatusReporter.h>
@@ -16,25 +15,20 @@ namespace Awsmock::Lrt {
     StatusReporter *StatusReporter::_instance = nullptr;
     std::mutex StatusReporter::_mutex;
 
-    StatusReporter::StatusReporter(std::string functionName, const int port, const std::string &managerHost, const int managerPort)
-        : _functionName(std::move(functionName)), _port(port), _managerHost(managerHost), _managerPort(managerPort) {
-        if (const char *env = std::getenv("AWSMOCK_INSTANCE_ID"); env && *env) {
-            _instanceId = env;
-        } else {
-            _instanceId = boost::uuids::to_string(boost::uuids::random_generator()());
-        }
+    StatusReporter::StatusReporter(std::string functionName, std::string instanceId, const int port, const std::string &managerHost, const int managerPort)
+        : _functionName(std::move(functionName)), _instanceId(std::move(instanceId)), _managerHost(managerHost), _port(port), _managerPort(managerPort) {
     }
 
-    StatusReporter &StatusReporter::initialize(const std::string &functionName, const int port, const std::string &managerHost, const int managerPort) {
+    StatusReporter &StatusReporter::initialize(const std::string &functionName, const std::string &instanceId, const int port, const std::string &managerHost, const int managerPort) {
         std::lock_guard lock(_mutex);
         if (!_instance) {
-            _instance = new StatusReporter(functionName, port, managerHost, managerPort);
+            _instance = new StatusReporter(functionName, instanceId, port, managerHost, managerPort);
         }
         return *_instance;
     }
 
-    StatusReporter &StatusReporter::initialize(const ILambdaRuntime &runtime, const std::string &functionName, const int port, const std::string &managerHost, const int managerPort) {
-        initialize(functionName, port, managerHost, managerPort);
+    StatusReporter &StatusReporter::initialize(const ILambdaRuntime &runtime, const std::string &functionName, const std::string &instanceId, const int port, const std::string &managerHost, const int managerPort) {
+        initialize(functionName, instanceId, port, managerHost, managerPort);
         _instance->setRuntime(runtime);
         return *_instance;
     }

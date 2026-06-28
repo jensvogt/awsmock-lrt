@@ -140,12 +140,12 @@ namespace Awsmock::Lrt {
                 try {
                     JNIEnv *env = w.self->getEnv();
                     const auto t0 = std::chrono::steady_clock::now();
-                    w.result = (w.self->_invokeMode == InvokeMode::RequestStreamHandler)
-                                       ? w.self->invokeStreamHandler(env, *w.ev)
-                                       : w.self->invokeStringFunction(env, *w.ev);
+                    w.result = (w.self->_invokeMode == InvokeMode::RequestStreamHandler)? w.self->invokeStreamHandler(env, *w.ev): w.self->invokeStringFunction(env, *w.ev);
                     w.elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
                 } catch (...) {
                     w.ex = std::current_exception();
+                    w.self->_status.runtimeStatus = RuntimeStatus::failed;
+                    StatusReporter::instance().reportStatus();
                 }
                 // Always detach: this pthread was freshly created so getEnv() attached it.
                 w.self->_jvm->DetachCurrentThread();
@@ -162,6 +162,7 @@ namespace Awsmock::Lrt {
         _status.lastInvocation = std::chrono::system_clock::now();
         _status.avgDuration += (work.elapsed - _status.avgDuration) / _status.invocations;
         _status.runtimeStatus = RuntimeStatus::idle;
+        StatusReporter::instance().reportStatus();
         log_debug << "Invocation finished, invocations: " << _status.invocations << ", avg duration: " << _status.avgDuration << "ms";
         return work.result;
     }

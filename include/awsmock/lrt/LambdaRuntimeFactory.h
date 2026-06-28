@@ -62,15 +62,13 @@ namespace Awsmock::Lrt {
         static std::unique_ptr<ILambdaRuntime> create(const std::string &runtime, const RuntimeParams &p) {
             const std::string rt = toLower(runtime);
 
-            if (rt == "java8" || rt == "java8.al2" || rt == "java11" ||
-                rt == "java17" || rt == "java21" || rt == "java25")
+            if (rt == "java17" || rt == "java21" || rt == "java25")
                 return std::make_unique<LambdaJvmRuntime>(p.codePath, p.handler, p.envVars, p.jvmArgs, p.runtimeJars);
 
-            if (rt == "nodejs18.x" || rt == "nodejs20.x" || rt == "nodejs22.x")
+            if (rt == "nodejs20.x" || rt == "nodejs22.x")
                 return std::make_unique<LambdaNodeRuntime>(p.codePath, p.handler, p.envVars, p.nodeExecutable);
 
-            if (rt == "python3.9" || rt == "python3.10" || rt == "python3.11" ||
-                rt == "python3.12" || rt == "python3.13")
+            if (rt == "python3.11" || rt == "python3.12" || rt == "python3.13")
                 return std::make_unique<LambdaPythonRuntime>(p.codePath, p.handler, p.envVars, p.pythonExecutable);
 
             if (rt == "provided" || rt == "provided.al2" || rt == "provided.al2023")

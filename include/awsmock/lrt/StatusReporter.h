@@ -11,8 +11,6 @@
 
 // Boost includes
 #include <boost/beast/http/verb.hpp>
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
 
 // AwsMock includes
 #include <awsmock/lrt/ILambdaRuntime.h>
@@ -42,7 +40,7 @@ namespace Awsmock::Lrt {
          * @param managerPort  AwsMock manager port
          * @return reference to the singleton instance
          */
-        static StatusReporter &initialize(const std::string &functionName, int port, const std::string &managerHost, int managerPort);
+        static StatusReporter &initialize(const std::string &functionName, const std::string &instanceId, int port, const std::string &managerHost, int managerPort);
 
         /**
          * @brief Initialize the singleton with a runtime in one step (convenience overload).
@@ -57,7 +55,7 @@ namespace Awsmock::Lrt {
          * @param managerPort  AwsMock manager port
          * @return reference to the singleton instance
          */
-        static StatusReporter &initialize(const ILambdaRuntime &runtime, const std::string &functionName, int port, const std::string &managerHost, int managerPort);
+        static StatusReporter &initialize(const ILambdaRuntime &runtime, const std::string &functionName, const std::string &instanceId, int port, const std::string &managerHost, int managerPort);
 
         /**
          * @brief Bind the runtime after phase-1 initialization.
@@ -111,7 +109,7 @@ namespace Awsmock::Lrt {
         /**
          * @brief Private constructor (phase-1, no runtime yet).
          */
-        StatusReporter(std::string functionName, int port, const std::string &managerHost, int managerPort);
+        StatusReporter(std::string functionName, std::string instanceId, int port, const std::string &managerHost, int managerPort);
 
         const ILambdaRuntime *_runtime = nullptr;
         std::string _functionName;
