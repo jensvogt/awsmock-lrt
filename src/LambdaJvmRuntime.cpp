@@ -24,7 +24,7 @@ namespace Awsmock::Lrt {
 
         // Build classpath: runtime JARs first (so they shadow nothing in the customer JAR), then the customer JAR.
         std::string cp = jarPath;
-        for (const auto &jar: runtimeJars){
+        for (const auto &jar: runtimeJars) {
             cp += ":" + jar;
         }
         std::string cpOption = "-Djava.class.path=" + cp;
@@ -60,7 +60,7 @@ namespace Awsmock::Lrt {
         // If the class implements RequestStreamHandler we use the stream path;
         // otherwise we fall back to String handleRequest(String).
         jclass const streamHandlerIface = _env->FindClass("com/amazonaws/services/lambda/runtime/RequestStreamHandler");
-        _env->ExceptionClear();// not fatal if AWS SDK is absent
+        _env->ExceptionClear(); // not fatal if AWS SDK is absent
         if (streamHandlerIface && _env->IsAssignableFrom(_handlerClass, streamHandlerIface)) {
             _invokeMode = InvokeMode::RequestStreamHandler;
         }
@@ -77,7 +77,7 @@ namespace Awsmock::Lrt {
         if (_invokeMode == InvokeMode::RequestStreamHandler) {
             // void handleRequest(InputStream, OutputStream, Context)
             _handleMethod = _env->GetMethodID(_handlerClass, "handleRequest", "(Ljava/io/InputStream;Ljava/io/OutputStream;"
-                                                                              "Lcom/amazonaws/services/lambda/runtime/Context;)V");
+                                              "Lcom/amazonaws/services/lambda/runtime/Context;)V");
             checkException(_env);
 
             // Cache ByteArrayInputStream — promote to global ref so GC cannot collect it
@@ -136,21 +136,24 @@ namespace Awsmock::Lrt {
         pthread_attr_init(&attr);
         pthread_attr_setstacksize(&attr, 32 * 1024 * 1024);
         if (pthread_create(&tid, &attr, [](void *p) -> void * {
-                auto &w = *static_cast<JniWork *>(p);
-                try {
-                    JNIEnv *env = w.self->getEnv();
-                    const auto t0 = std::chrono::steady_clock::now();
-                    w.result = (w.self->_invokeMode == InvokeMode::RequestStreamHandler)? w.self->invokeStreamHandler(env, *w.ev): w.self->invokeStringFunction(env, *w.ev);
-                    w.elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
-                } catch (...) {
-                    w.ex = std::current_exception();
-                    w.self->_status.runtimeStatus = RuntimeStatus::failed;
-                    StatusReporter::instance().reportStatus();
-                }
-                // Always detach: this pthread was freshly created so getEnv() attached it.
-                w.self->_jvm->DetachCurrentThread();
-                return nullptr;
-            }, &work) != 0) {
+            auto &[self, ev, result, ex, elapsed] = *static_cast<JniWork *>(p);
+            try {
+                JNIEnv *env = self->getEnv();
+                const auto t0 = std::chrono::steady_clock::now();
+                result = self->_invokeMode == InvokeMode::RequestStreamHandler ? self->invokeStreamHandler(env, *ev) : self->invokeStringFunction(env, *ev);
+                elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+            } catch (...) {
+                ex = std::current_exception();
+                self->_status.invocations++;
+                self->_status.lastInvocation = std::chrono::system_clock::now();
+                self->_status.avgDuration += elapsed / self->_status.invocations;
+                self->_status.runtimeStatus = RuntimeStatus::failed;
+                StatusReporter::instance().reportStatus();
+            }
+            // Always detach: this pthread was freshly created so getEnv() attached it.
+            self->_jvm->DetachCurrentThread();
+            return nullptr;
+        }, &work) != 0) {
             throw std::runtime_error("pthread_create for JNI invocation failed");
         }
         pthread_attr_destroy(&attr);
@@ -300,4 +303,4 @@ namespace Awsmock::Lrt {
         env->DeleteLocalRef(clCls);
         log_debug << "System classloader set on attached thread";
     }
-}// namespace Awsmock::GRT
+} // namespace Awsmock::GRT
