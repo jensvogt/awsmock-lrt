@@ -11,6 +11,8 @@
 
 // Boost includes
 #include <boost/program_options.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 // Project includes
 #include <awsmock/core/config/Configuration.h>
@@ -57,6 +59,8 @@ int main(const int argc, char *argv[]) {
     std::string nodeExecutable = "node";
     std::string pythonExecutable = "python3";
     std::string managerHost = "host.docker.internal";
+    std::string instanceId = Awsmock::Core::StringUtils::GenerateRandomAlphanumericString(12);
+
     int port = 8080;
     int lifetime = 0;
     int managerPort = 4566;
@@ -82,6 +86,7 @@ int main(const int argc, char *argv[]) {
     ("manager-host,m",     po::value<std::string>(&managerHost)->default_value(managerHost),           "Hostname of the manager (default: host.docker.internal)")
     ("manager-port,P",     po::value<int>(&managerPort)->default_value(managerPort),                   "Manager port (default: 4566)")
     ("report-period,M",    po::value<int>(&reportPeriod)->default_value(reportPeriod),                 "Manager report period (default: 30)")
+    ("instance-id,i",      po::value<std::string>(&instanceId)->default_value(instanceId),             "Instance ID (default: random UUID)")
     ("config,C",           po::value<std::string>(&configFile)->default_value(configFile),             "Configuration file name")
     ("loglevel,L",         po::value<std::string>(&logLevel)->default_value(logLevel),                 "Logging level");
     // clang-format on
@@ -114,16 +119,17 @@ int main(const int argc, char *argv[]) {
     }
 
     std::cout
-            << "code-path : " << codePath << '\n'
-            << "name      : " << functionName << '\n'
-            << "handler   : " << handler << '\n'
-            << "runtime   : " << runtime << '\n'
-            << "port      : " << port << '\n'
-            << "lifetime  : " << lifetime << '\n'
-            << "config    : " << configFile << '\n'
-            << "loglevel  : " << logLevel << '\n'
-            << "manager   : " << managerHost << ":" << managerPort << '\n'
-            << "period    : " << reportPeriod << '\n';
+            << "code-path  : " << codePath << '\n'
+            << "name       : " << functionName << '\n'
+            << "handler    : " << handler << '\n'
+            << "runtime    : " << runtime << '\n'
+            << "port       : " << port << '\n'
+            << "lifetime   : " << lifetime << '\n'
+            << "config     : " << configFile << '\n'
+            << "loglevel   : " << logLevel << '\n'
+            << "manager    : " << managerHost << ":" << managerPort << '\n'
+            << "period     : " << reportPeriod << '\n'
+            << "instanceId : " << instanceId << '\n';
     for (const auto &[k, v]: envVars) std::cout << "  env     : " << k << '=' << v << '\n';
     for (const auto &a: jvmArgs) std::cout << "  jvm     : " << a << '\n';
     for (const auto &j: runtimeJars) std::cout << "  rt-jar  : " << j << '\n';
@@ -153,7 +159,7 @@ int main(const int argc, char *argv[]) {
 
     // Phase 1: StatusReporter up before JVM/runtime start, so "starting" status
     // can be reported during the (potentially slow) runtime initialization.
-    Awsmock::Lrt::StatusReporter::initialize(functionName, port, managerHost, managerPort);
+    Awsmock::Lrt::StatusReporter::initialize(functionName, instanceId, port, managerHost, managerPort);
 
     std::unique_ptr<Awsmock::Lrt::ILambdaRuntime> runtime_ptr;
     try {
