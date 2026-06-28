@@ -59,7 +59,7 @@ int main(const int argc, char *argv[]) {
     std::string nodeExecutable = "node";
     std::string pythonExecutable = "python3";
     std::string managerHost = "host.docker.internal";
-    std::string instanceId = Awsmock::Core::StringUtils::GenerateRandomAlphanumericString(12);
+    std::string instanceId = Awsmock::Core::StringUtils::GenerateRandomHexString(8);
 
     int port = 8080;
     int lifetime = 0;
