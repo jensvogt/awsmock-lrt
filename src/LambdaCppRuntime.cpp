@@ -2,21 +2,19 @@
 // Created by vogje01 on 6/21/26.
 //
 
-#include <awsmock/lrt/LambdaCppRuntime.h>
-
 // C++ includes
 #include <chrono>
 #include <stdexcept>
-
-// POSIX includes
 #include <dlfcn.h>
 
 // Awsmock includes
 #include <awsmock/lrt/StatusReporter.h>
+#include <awsmock/lrt/LambdaCppRuntime.h>
 
 namespace Awsmock::Lrt {
 
     LambdaCppRuntime::LambdaCppRuntime(const std::string &libPath,const std::string &handler,const std::map<std::string, std::string> &envVars) {
+        StatusReporter::instance().setRuntime(*this);
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
         StatusReporter::instance().reportStatus();
@@ -25,13 +23,23 @@ namespace Awsmock::Lrt {
             setenv(k.c_str(), v.c_str(), 1);
 
         _handle = dlopen(libPath.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (!_handle)
+        if (!_handle) {
+            _status.invocations++;
+            _status.lastInvocation = std::chrono::system_clock::now();
+            //_status.avgDuration += elapsed / _status.invocations;
+            _status.runtimeStatus = RuntimeStatus::failed;
             throw std::runtime_error(std::string("dlopen failed: ") + dlerror());
+        }
 
         const std::string symbol = handler.empty() ? "lambda_invoke" : handler;
         _invokeFn = reinterpret_cast<InvokeFn>(dlsym(_handle, symbol.c_str()));
-        if (!_invokeFn)
+        if (!_invokeFn) {
+            _status.invocations++;
+            _status.lastInvocation = std::chrono::system_clock::now();
+            //_status.avgDuration += elapsed / _status.invocations;
+            _status.runtimeStatus = RuntimeStatus::failed;
             throw std::runtime_error("Symbol not found: " + symbol + " — " + dlerror());
+        }
 
         // lambda_free is optional
         _freeFn = reinterpret_cast<FreeFn>(dlsym(_handle, "lambda_free"));

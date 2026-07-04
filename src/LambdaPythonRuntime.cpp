@@ -52,13 +52,11 @@ for line in sys.stdin:
         sys.stdout.flush()
 )PY";
 
-    LambdaPythonRuntime::LambdaPythonRuntime(const std::string &codePath,
-                                           const std::string &handler,
-                                           const std::map<std::string, std::string> &envVars,
-                                           const std::string &pythonExecutable) {
+    LambdaPythonRuntime::LambdaPythonRuntime(const std::string &codePath,const std::string &handler,const std::map<std::string, std::string> &envVars,const std::string &pythonExecutable) {
         _shimPath = "/tmp/awsmock-grt-python-" + std::to_string(getpid()) + ".py";
         writeShim();
 
+        StatusReporter::instance().setRuntime(*this);
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
         StatusReporter::instance().reportStatus();
@@ -80,7 +78,7 @@ for line in sys.stdin:
             ::unlink(_shimPath.c_str());
     }
 
-    void LambdaPythonRuntime::writeShim() {
+    void LambdaPythonRuntime::writeShim() const {
         std::ofstream f(_shimPath);
         if (!f)
             throw std::runtime_error("Cannot write Python shim to " + _shimPath);

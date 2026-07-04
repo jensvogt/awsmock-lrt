@@ -56,13 +56,11 @@ process.stdin.on('data', chunk => {
 process.stdin.on('end', () => process.exit(0));
 )JS";
 
-    LambdaNodeRuntime::LambdaNodeRuntime(const std::string &codePath,
-                                       const std::string &handler,
-                                       const std::map<std::string, std::string> &envVars,
-                                       const std::string &nodeExecutable) {
+    LambdaNodeRuntime::LambdaNodeRuntime(const std::string &codePath,const std::string &handler,const std::map<std::string, std::string> &envVars,const std::string &nodeExecutable) {
         _shimPath = "/tmp/awsmock-grt-node-" + std::to_string(getpid()) + ".js";
         writeShim(codePath, handler);
 
+        StatusReporter::instance().setRuntime(*this);
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
         StatusReporter::instance().reportStatus();
@@ -81,7 +79,7 @@ process.stdin.on('end', () => process.exit(0));
         StatusReporter::instance().reportStatus();
 
         if (!_shimPath.empty())
-            ::unlink(_shimPath.c_str());
+            unlink(_shimPath.c_str());
     }
 
     void LambdaNodeRuntime::writeShim(const std::string & /*codePath*/, const std::string & /*handler*/) const {

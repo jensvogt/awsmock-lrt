@@ -91,6 +91,8 @@ namespace Awsmock::Lrt {
          */
         void reportStopped() const;
 
+        void reportStopped(const RuntimeStatus &runtimeStatus) const;
+
         // Non-copyable, non-movable
         StatusReporter(const StatusReporter &) = delete;
 
