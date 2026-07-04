@@ -12,6 +12,7 @@ namespace Awsmock::Lrt {
 
     LambdaJvmRuntime::LambdaJvmRuntime(const std::string &jarPath, const std::string &handler, const std::map<std::string, std::string> &envVars, const std::vector<std::string> &jvmArgs, const std::vector<std::string> &runtimeJars) {
 
+        StatusReporter::instance().setRuntime(*this);
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
         StatusReporter::instance().reportStatus();

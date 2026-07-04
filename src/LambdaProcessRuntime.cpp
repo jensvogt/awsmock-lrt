@@ -2,15 +2,10 @@
 // Created by vogje01 on 6/21/26.
 //
 
-#include <awsmock/lrt/LambdaProcessRuntime.h>
-
 // C++ includes
 #include <chrono>
 #include <stdexcept>
 #include <string>
-
-// Awsmock includes
-#include <awsmock/lrt/StatusReporter.h>
 
 // POSIX includes
 #include <cerrno>
@@ -19,13 +14,15 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+// Awsmock includes
+#include <awsmock/lrt/StatusReporter.h>
+#include <awsmock/lrt/LambdaProcessRuntime.h>
+
 namespace Awsmock::Lrt {
 
     // ── spawn ─────────────────────────────────────────────────────────────────
 
-    void LambdaProcessRuntime::spawn(const std::string &executable,
-                                    const std::vector<std::string> &args,
-                                    const std::map<std::string, std::string> &envVars) {
+    void LambdaProcessRuntime::spawn(const std::string &executable,const std::vector<std::string> &args,const std::map<std::string, std::string> &envVars) {
         _status.runtimeStatus = RuntimeStatus::starting;
         _status.pid = Core::SystemUtils::GetPid();
 
@@ -84,8 +81,7 @@ namespace Awsmock::Lrt {
         const auto t0 = std::chrono::steady_clock::now();
 
         const std::string line = eventJson + "\n";
-        const ssize_t written = write(_stdinFd, line.data(), line.size());
-        if (written < 0)
+        if (const ssize_t written = write(_stdinFd, line.data(), line.size()); written < 0)
             throw std::runtime_error(std::string("write to subprocess stdin failed: ") + strerror(errno));
 
         const std::string result = readLine();
@@ -136,8 +132,10 @@ namespace Awsmock::Lrt {
             // Give the child up to 3 seconds to exit cleanly, then SIGKILL.
             for (int i = 0; i < 30; ++i) {
                 int wstatus;
-                const pid_t r = waitpid(_pid, &wstatus, WNOHANG);
-                if (r == _pid) { _pid = -1; return; }
+                if (const pid_t r = waitpid(_pid, &wstatus, WNOHANG); r == _pid) {
+                    _pid = -1;
+                    return;
+                }
                 usleep(100'000);
             }
             kill(_pid, SIGKILL);

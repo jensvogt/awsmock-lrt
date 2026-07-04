@@ -43,7 +43,7 @@ namespace Awsmock::Lrt {
 
         std::string _shimPath;
 
-        void writeShim();
+        void writeShim() const;
     };
 
 }// namespace Awsmock::GRT
