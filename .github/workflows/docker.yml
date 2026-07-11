@@ -90,7 +90,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: awsmock-lrt
+          name: awsmocklrt
           path: cmake-build-release/
 
       - run: chmod +x cmake-build-release/awsmock-lrt
