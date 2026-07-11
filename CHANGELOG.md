@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.5](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.4...v0.1.5) (2026-07-11)
+
+
+### Features
+
+* **initial-load:** correct status reporting and handle ([ff8b77e](https://github.com/jensvogt/awsmock-lrt/commit/ff8b77eb707759f92e06a9e35643e0979433de1c))
+* **initial-load:** correct status reporting and handle ([f8734f8](https://github.com/jensvogt/awsmock-lrt/commit/f8734f8139458fd27784815653b4206d22ff3ced))
+* **initial-load:** correct status reporting and handle ([3a98669](https://github.com/jensvogt/awsmock-lrt/commit/3a98669a3bf346f09971d76adb930db6025923c4))
+
 ## [0.1.4](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.3...v0.1.4) (2026-07-04)
 
 
