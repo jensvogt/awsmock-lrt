@@ -52,7 +52,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: awsmock-lrt
-          path: cmake-build-release/awsmock-lrt
+          path: cmake-build-release/awsmocklrt
           retention-days: 1
 
   # ── Build and push one image per runtime ──────────────────────────────────────
