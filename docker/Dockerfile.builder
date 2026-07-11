@@ -44,3 +44,4 @@ RUN cmake -B awsmock-lrt/cmake-build-release -S awsmock-lrt \
         -DJAVA_HOME=/usr/lib/jvm/java-21-openjdk \
         -G Ninja && \
     cmake --build awsmock-lrt/cmake-build-release --parallel
+
