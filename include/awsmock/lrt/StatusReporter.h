@@ -111,7 +111,7 @@ namespace Awsmock::Lrt {
         /**
          * @brief Private constructor (phase-1, no runtime yet).
          */
-        StatusReporter(std::string functionName, std::string instanceId, int port, const std::string &managerHost, int managerPort);
+        StatusReporter(std::string functionName, std::string instanceId, int port, std::string managerHost, int managerPort);
 
         const ILambdaRuntime *_runtime = nullptr;
         std::string _functionName;

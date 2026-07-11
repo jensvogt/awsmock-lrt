@@ -8,8 +8,8 @@ RUN mkdir -p \
         /usr/local/awsmock/etc \
         /usr/local/awsmock/log
 
-COPY cmake-build-release/awsmock-lrt /usr/local/awsmock/bin/awsmock-lrt
-RUN chmod +x /usr/local/awsmock/bin/awsmock-lrt
+COPY cmake-build-release/awsmocklrt /usr/local/awsmock/bin/awsmocklrt
+RUN chmod +x /usr/local/awsmock/bin/awsmocklrt
 
 COPY docker/lib/java/ /usr/local/awsmock/lib/java/
 COPY docker/awsmock.json /usr/local/awsmock/etc/awsmock.json
@@ -19,4 +19,4 @@ ENV LD_LIBRARY_PATH="${JAVA_HOME}/lib/server"
 
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/local/awsmock/bin/awsmock-lrt"]
+ENTRYPOINT ["/usr/local/awsmock/bin/awsmocklrt"]

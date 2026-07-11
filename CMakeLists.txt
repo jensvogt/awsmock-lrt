@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 4.2)
-project(awsmock-lrt)
+project(awsmocklrt)
 
 set(CMAKE_CXX_STANDARD 23)
+set(BINARY awsmocklrt)
 
 # Point to the vcpkg installation that libawsmockcore.a was compiled against.
 # Override with -DAWSMOCK_VCPKG_DIR=<path> if the awsmock build tree moves.
@@ -61,9 +62,9 @@ set(GRT_SOURCES src/main.cpp src/LambdaJvmRuntime.cpp src/LambdaProcessRuntime.c
         src/StatusReporter.cpp)
 set(GRT_LIBS lib/)
 
-add_executable(awsmock-lrt ${GRT_SOURCES})
-target_include_directories(awsmock-lrt PRIVATE include/ ${JNI_INCLUDE_DIRS})
-target_link_directories(awsmock-lrt PRIVATE lib)
-target_link_libraries(awsmock-lrt PRIVATE ${JNI_LIBRARIES} awsmockcore awsmockdto awsmockdb OpenSSL::SSL OpenSSL::Crypto
+add_executable(${BINARY} ${GRT_SOURCES})
+target_include_directories(${BINARY} PRIVATE include/ ${JNI_INCLUDE_DIRS})
+target_link_directories(${BINARY} PRIVATE lib)
+target_link_libraries(${BINARY} PRIVATE ${JNI_LIBRARIES} awsmockcore awsmockdto awsmockdb OpenSSL::SSL OpenSSL::Crypto
         Boost::program_options Boost::json Boost::log Boost::log_setup Boost::program_options Boost::process Boost::url
         Threads::Threads ${CMAKE_DL_LIBS})

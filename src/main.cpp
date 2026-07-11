@@ -185,7 +185,7 @@ int main(const int argc, char *argv[]) {
     boost::asio::io_context schedulerIoc;
     auto workGuard = boost::asio::make_work_guard(schedulerIoc);
     Awsmock::Core::Scheduler::initialize(schedulerIoc);
-    Awsmock::Core::Scheduler::instance().AddTask("grt-status-reporter", [] { Awsmock::Lrt::StatusReporter::instance().reportStatus(); }, reportPeriod, reportPeriod);
+    Awsmock::Core::Scheduler::instance().AddTask("status-reporter", [] { Awsmock::Lrt::StatusReporter::instance().reportStatus(); }, reportPeriod, reportPeriod);
     std::thread schedulerThread([&] { schedulerIoc.run(); });
 
     if (lifetime > 0) {

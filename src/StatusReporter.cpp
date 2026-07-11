@@ -4,6 +4,7 @@
 
 // C++ includes
 #include <chrono>
+#include <utility>
 
 // AwsMock includes
 #include <awsmock/lrt/StatusReporter.h>
@@ -15,8 +16,8 @@ namespace Awsmock::Lrt {
     StatusReporter *StatusReporter::_instance = nullptr;
     std::mutex StatusReporter::_mutex;
 
-    StatusReporter::StatusReporter(std::string functionName, std::string instanceId, const int port, const std::string &managerHost, const int managerPort)
-        : _functionName(std::move(functionName)), _instanceId(std::move(instanceId)), _managerHost(managerHost), _port(port), _managerPort(managerPort) {
+    StatusReporter::StatusReporter(std::string functionName, std::string instanceId, const int port, std::string managerHost, const int managerPort)
+        : _functionName(std::move(functionName)), _instanceId(std::move(instanceId)), _managerHost(std::move(managerHost)), _port(port), _managerPort(managerPort) {
     }
 
     StatusReporter &StatusReporter::initialize(const std::string &functionName, const std::string &instanceId, const int port, const std::string &managerHost, const int managerPort) {
