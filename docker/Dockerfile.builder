@@ -7,7 +7,7 @@ RUN apk add --no-cache \
     build-base ninja git perl zip unzip curl tar pkgconfig linux-headers bash python3 py3-pip autoconf \
     autoconf-archive automake libtool m4 make gettext-dev patch pkgconf ncurses-dev ncurses-terminfo-base \
     coreutils openssl-dev zlib-dev bzip2-dev readline-dev sqlite-dev xz-dev libffi-dev util-linux-dev musl-dev \
-    openjdk21-jdk ca-certificates libgoogle-perftools-dev
+    openjdk21-jdk ca-certificates
 
 # Alpine ships CMake < 4.2; get the current release via pip
 RUN pip3 install cmake --break-system-packages
