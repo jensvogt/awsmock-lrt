@@ -46,7 +46,7 @@ jobs:
         run: |
           docker create --name builder-tmp awsmock-lrt-builder:latest sh
           mkdir -p cmake-build-release
-          docker cp builder-tmp:/build/awsmock-lrt/cmake-build-release/awsmock-lrt cmake-build-release/awsmock-lrt
+          docker cp builder-tmp:/build/awsmock-lrt/cmake-build-release/awsmocklrt cmake-build-release/awsmocklrt
           docker rm builder-tmp
 
       - uses: actions/upload-artifact@v4
