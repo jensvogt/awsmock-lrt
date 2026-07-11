@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.7](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.6...v0.1.7) (2026-07-11)
+
+
+### Features
+
+* **initial-load:** correct status reporting and handle ([025d041](https://github.com/jensvogt/awsmock-lrt/commit/025d041ba80064d68f4bbff8cd1221e13bb17a85))
+* **initial-load:** correct status reporting and handle ([718f0b8](https://github.com/jensvogt/awsmock-lrt/commit/718f0b8eb5a0ab4a6a7d111d0659811234d77234))
+* **initial-load:** initial load implementation ([5e38ed7](https://github.com/jensvogt/awsmock-lrt/commit/5e38ed71edbed8061b2ced3e5cd52fb8e3ac0da0))
+
+
+### Bug Fixes
+
+* add new Dockerfile.java17 ([578c6d0](https://github.com/jensvogt/awsmock-lrt/commit/578c6d0ddce3b652f495b733fb27208275ef215e))
+* add new Dockerfile.java17 ([0ebd770](https://github.com/jensvogt/awsmock-lrt/commit/0ebd770f359f4758774f1bcc962bb234c1f4d951))
+* use glob in .dockerignore to allow binary re-inclusion ([8f0d995](https://github.com/jensvogt/awsmock-lrt/commit/8f0d9950697b4266cb28534cca1276f4df259479))
+
 ## [0.1.6](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.5...v0.1.6) (2026-07-11)
 
 
