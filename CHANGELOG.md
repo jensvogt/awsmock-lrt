@@ -1,5 +1,72 @@
 # Changelog
 
+## [0.1.7](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.6...v0.1.7) (2026-07-11)
+
+
+### Features
+
+* **initial-load:** correct status reporting and handle ([025d041](https://github.com/jensvogt/awsmock-lrt/commit/025d041ba80064d68f4bbff8cd1221e13bb17a85))
+* **initial-load:** correct status reporting and handle ([718f0b8](https://github.com/jensvogt/awsmock-lrt/commit/718f0b8eb5a0ab4a6a7d111d0659811234d77234))
+* **initial-load:** initial load implementation ([5e38ed7](https://github.com/jensvogt/awsmock-lrt/commit/5e38ed71edbed8061b2ced3e5cd52fb8e3ac0da0))
+
+
+### Bug Fixes
+
+* add new Dockerfile.java17 ([578c6d0](https://github.com/jensvogt/awsmock-lrt/commit/578c6d0ddce3b652f495b733fb27208275ef215e))
+* add new Dockerfile.java17 ([0ebd770](https://github.com/jensvogt/awsmock-lrt/commit/0ebd770f359f4758774f1bcc962bb234c1f4d951))
+* use glob in .dockerignore to allow binary re-inclusion ([8f0d995](https://github.com/jensvogt/awsmock-lrt/commit/8f0d9950697b4266cb28534cca1276f4df259479))
+
+## [0.1.6](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.5...v0.1.6) (2026-07-11)
+
+
+### Features
+
+* **initial-load:** correct status reporting and handle ([da0e846](https://github.com/jensvogt/awsmock-lrt/commit/da0e846a07e5ce7fa35c14e6b5b28fc802a76834))
+* **initial-load:** correct status reporting and handle ([24608be](https://github.com/jensvogt/awsmock-lrt/commit/24608be38b737056f037547054aa8aa3f0d80ebe))
+* **initial-load:** correct status reporting and handle ([a8fb6bf](https://github.com/jensvogt/awsmock-lrt/commit/a8fb6bfe88b5591637361ea0065c84537128a09a))
+
+## [0.1.5](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.4...v0.1.5) (2026-07-11)
+
+
+### Features
+
+* **initial-load:** correct status reporting and handle ([ff8b77e](https://github.com/jensvogt/awsmock-lrt/commit/ff8b77eb707759f92e06a9e35643e0979433de1c))
+* **initial-load:** correct status reporting and handle ([f8734f8](https://github.com/jensvogt/awsmock-lrt/commit/f8734f8139458fd27784815653b4206d22ff3ced))
+* **initial-load:** correct status reporting and handle ([3a98669](https://github.com/jensvogt/awsmock-lrt/commit/3a98669a3bf346f09971d76adb930db6025923c4))
+
+## [0.1.4](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.3...v0.1.4) (2026-07-04)
+
+
+### Features
+
+* **initial-load:** correct status reporting and handle ([8010be7](https://github.com/jensvogt/awsmock-lrt/commit/8010be73e152a73b3831411aabcc4d908d6e9218))
+
+## [0.1.3](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.2...v0.1.3) (2026-06-28)
+
+
+### Features
+
+* **initial-load:** using pthread 32mb stack size ([2d75bcd](https://github.com/jensvogt/awsmock-lrt/commit/2d75bcdc70c49acfc6dc08d06893affb9af7943a))
+
+## [0.1.2](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.1...v0.1.2) (2026-06-28)
+
+
+### Features
+
+* **initial-load:** add "/stop" controller ([df8f170](https://github.com/jensvogt/awsmock-lrt/commit/df8f170cd0f6f0e51ee03f76cd2f8da80f0ac237))
+* **initial-load:** change name pattern ([fa62416](https://github.com/jensvogt/awsmock-lrt/commit/fa62416728e463c2d8e3071948ba06c4fe7e0a15))
+* **initial-load:** change name pattern ([127e3c7](https://github.com/jensvogt/awsmock-lrt/commit/127e3c7865fd74f0aca358cafadcc77e13a6dd86))
+* **initial-load:** get instanceID from manager and add instanceID ([e60b05c](https://github.com/jensvogt/awsmock-lrt/commit/e60b05c28c266d5f79773d496d09b226a7c87464))
+* **initial-load:** include start/stop/lastinvocation timestamps ([4383723](https://github.com/jensvogt/awsmock-lrt/commit/43837231012ee095b84b189c15594936a65072bd))
+* **initial-load:** include start/stop/lastinvocation timestamps ([576ca76](https://github.com/jensvogt/awsmock-lrt/commit/576ca76e997113a1f946d1bd462af71b76502c4d))
+* **initial-load:** include start/stop/lastinvocation timestamps ([da9deff](https://github.com/jensvogt/awsmock-lrt/commit/da9deff69ab95209e0b772ac20edd44609ab8357))
+* **initial-load:** include start/stop/lastinvocation timestamps ([4a16e28](https://github.com/jensvogt/awsmock-lrt/commit/4a16e28c8b82738eb80184b0db20bcbc69734107))
+* **initial-load:** more logging ([5ad4641](https://github.com/jensvogt/awsmock-lrt/commit/5ad46411c4beb25ae7519f6b44ad006229f88b3b))
+* **initial-load:** using pthread 32mb stack size ([7d8f844](https://github.com/jensvogt/awsmock-lrt/commit/7d8f8446041c3e7164cbbb57349bed5e2f774101))
+* **initial-load:** using pthread 32mb stack size ([90fc835](https://github.com/jensvogt/awsmock-lrt/commit/90fc8353157ed12f0ff92f7a73139154e4e9771a))
+* **initial-load:** using pthread 32mb stack size ([2b16af3](https://github.com/jensvogt/awsmock-lrt/commit/2b16af36f3fe09983f750a9d957829c5a46e8da7))
+* **initial-load:** using pthread 32mb stack size ([89ab1c8](https://github.com/jensvogt/awsmock-lrt/commit/89ab1c82440fb53914c23c34943282b1d24bcb90))
+
 ## [0.1.1](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.0...v0.1.1) (2026-06-22)
 
 
