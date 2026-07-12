@@ -21,7 +21,14 @@ namespace Awsmock::Lrt {
     static constexpr const char *PYTHON_SHIM = R"PY(
 import sys, json, importlib.util, os
 
-code_path   = sys.argv[1]
+# Save the real stdout for writing invocation responses, then redirect
+# sys.stdout to stderr so print() / logging in the handler goes to stderr.
+# This mirrors the real Lambda runtime: print() goes to CloudWatch Logs,
+# not the invocation response.
+_response_out = sys.stdout
+sys.stdout = sys.stderr
+
+code_path    = sys.argv[1]
 handler_expr = sys.argv[2]
 dot          = handler_expr.rfind('.')
 if dot < 0:
@@ -45,11 +52,11 @@ for line in sys.stdin:
     try:
         event  = json.loads(line)
         result = handler_fn(event, None)
-        sys.stdout.write(json.dumps(result) + '\n')
-        sys.stdout.flush()
+        _response_out.write(json.dumps(result) + '\n')
+        _response_out.flush()
     except Exception as e:
-        sys.stdout.write(json.dumps({'error': str(e)}) + '\n')
-        sys.stdout.flush()
+        _response_out.write(json.dumps({'error': str(e)}) + '\n')
+        _response_out.flush()
 )PY";
 
     LambdaPythonRuntime::LambdaPythonRuntime(const std::string &codePath,const std::string &handler,const std::map<std::string, std::string> &envVars,const std::string &pythonExecutable) {
