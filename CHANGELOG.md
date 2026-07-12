@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.8...v0.1.9) (2026-07-12)
+
+
+### Bug Fixes
+
+* add http timeout for JSON commands ([f450d6a](https://github.com/jensvogt/awsmock-lrt/commit/f450d6a51e94645e784dc187a854ee808bf223ff))
+
 ## [0.1.8](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.7...v0.1.8) (2026-07-12)
 
 
