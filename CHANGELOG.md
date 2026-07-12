@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.10](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.9...v0.1.10) (2026-07-12)
+
+
+### Bug Fixes
+
+* repair nodeJS runtime to distinguish between stdout and stderr. ([3a1c1c0](https://github.com/jensvogt/awsmock-lrt/commit/3a1c1c0c158cb01d0179ce5d0bcb47ddc7e1678f))
+* repair other runtimes to distinguish between stdout and stderr. ([e058aa5](https://github.com/jensvogt/awsmock-lrt/commit/e058aa5862d1d916bbd6d4f1d6e3ce229b8f84c9))
+
 ## [0.1.9](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.8...v0.1.9) (2026-07-12)
 
 
