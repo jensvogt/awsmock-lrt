@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.8](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.7...v0.1.8) (2026-07-12)
+
+
+### Bug Fixes
+
+* add invocation start, duration and invocation count in the logs ([8cec13f](https://github.com/jensvogt/awsmock-lrt/commit/8cec13f47c7048395f220301d40158bd22afc479))
+* add invocation start, duration and invocation count in the logs ([8b8728e](https://github.com/jensvogt/awsmock-lrt/commit/8b8728e09a6a5f6b1000e7bf7d11b02fb900e13f))
+
 ## [0.1.7](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.6...v0.1.7) (2026-07-11)
 
 
