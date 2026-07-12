@@ -110,6 +110,8 @@ namespace Awsmock::Lrt {
         _status.runtimeStatus = RuntimeStatus::idle;
         _status.lastStart = std::chrono::system_clock::now();
         StatusReporter::instance().reportStatus();
+
+        log_info << "JVM runtime started, class: " << _className << ", method: " << _methodName;
     }
 
     // ── invoke ────────────────────────────────────────────────────────────────────

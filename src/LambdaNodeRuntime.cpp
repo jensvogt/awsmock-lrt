@@ -17,8 +17,8 @@
 
 namespace Awsmock::Lrt {
 
-    // Inline shim: argv[2]=codePath  argv[3]=handler ("file.fn")
-    static constexpr const char *NODE_SHIM = R"JS(
+    // Inline shim: argv[2]=codePath argv[3]=handler ("file.fn")
+    static constexpr auto NODE_SHIM = R"JS(
 'use strict';
 const path = require('path');
 const codePath = process.argv[2];
@@ -57,7 +57,7 @@ process.stdin.on('end', () => process.exit(0));
 )JS";
 
     LambdaNodeRuntime::LambdaNodeRuntime(const std::string &codePath,const std::string &handler,const std::map<std::string, std::string> &envVars,const std::string &nodeExecutable) {
-        _shimPath = "/tmp/awsmock-grt-node-" + std::to_string(getpid()) + ".js";
+        _shimPath = "/tmp/awsmock-lrt-node-" + std::to_string(getpid()) + ".js";
         writeShim(codePath, handler);
 
         StatusReporter::instance().setRuntime(*this);
