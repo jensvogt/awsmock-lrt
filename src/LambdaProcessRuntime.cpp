@@ -77,6 +77,7 @@ namespace Awsmock::Lrt {
     std::string LambdaProcessRuntime::invoke(const std::string &eventJson) {
         std::lock_guard lock(_invokeMtx);
         _status.runtimeStatus = RuntimeStatus::running;
+        log_debug << "Starting invocation";
 
         const auto t0 = std::chrono::steady_clock::now();
 
@@ -92,6 +93,7 @@ namespace Awsmock::Lrt {
         _status.lastInvocation = std::chrono::system_clock::now();
         _status.runtimeStatus = RuntimeStatus::idle;
         StatusReporter::instance().reportStatus();
+        log_debug << "Invocation finished, invocations: " << _status.invocations << ", avg duration: " << _status.avgDuration << "ms";
         return result;
     }
 
