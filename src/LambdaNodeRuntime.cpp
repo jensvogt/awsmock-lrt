@@ -21,6 +21,16 @@ namespace Awsmock::Lrt {
     static constexpr auto NODE_SHIM = R"JS(
 'use strict';
 const path = require('path');
+
+// Redirect all console output to stderr so only the handler return value goes to stdout.
+// The real Lambda runtime sends console.log to CloudWatch Logs, not the invocation response.
+const stderrWrite = (...args) => process.stderr.write(args.map(String).join(' ') + '\n');
+console.log   = stderrWrite;
+console.info  = stderrWrite;
+console.warn  = stderrWrite;
+console.error = stderrWrite;
+console.debug = stderrWrite;
+
 const codePath = process.argv[2];
 const handlerExpr = process.argv[3];
 const dot = handlerExpr.lastIndexOf('.');
