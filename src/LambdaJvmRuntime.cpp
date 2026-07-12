@@ -98,14 +98,14 @@ namespace Awsmock::Lrt {
             checkException(_env);
             _baosClass = static_cast<jclass>(_env->NewGlobalRef(localBaos));
             _env->DeleteLocalRef(localBaos);
-            std::cout << "Handler mode: RequestStreamHandler (FunctionInvoker path)\n";
+            log_info << "Handler mode: RequestStreamHandler (FunctionInvoker path)";
 
         } else {
 
             // String handleRequest(String)  — or whatever _methodName is
             _handleMethod = _env->GetMethodID(_handlerClass, _methodName.c_str(), "(Ljava/lang/String;)Ljava/lang/String;");
             checkException(_env);
-            std::cout << "Handler mode: String function\n";
+            log_info << "Handler mode: String function";
         }
         _status.runtimeStatus = RuntimeStatus::idle;
         _status.lastStart = std::chrono::system_clock::now();
