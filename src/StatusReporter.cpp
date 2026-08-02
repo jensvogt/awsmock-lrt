@@ -58,6 +58,7 @@ namespace Awsmock::Lrt {
             status.functionName = _functionName;
             status.port = _port;
             status.instanceId = _instanceId;
+            status.runtimeVersion = Core::Configuration::getVersion();
             const std::map<std::string, std::string> headers = {
                     {"x-awsmock-target", "lambda"},
                     {"x-awsmock-action", "lambda-runtime-status"},
@@ -80,6 +81,7 @@ namespace Awsmock::Lrt {
             status.functionName = _functionName;
             status.port = _port;
             status.instanceId = _instanceId;
+            status.runtimeVersion = Core::Configuration::getVersion();
             const std::map<std::string, std::string> headers = {
                     {"x-awsmock-target", "lambda"},
                     {"x-awsmock-action", "lambda-runtime-status"},
@@ -99,6 +101,7 @@ namespace Awsmock::Lrt {
             status.functionName = _functionName;
             status.port = _port;
             status.instanceId = _instanceId;
+            status.runtimeVersion = Core::Configuration::getVersion();
             const std::map<std::string, std::string> headers = {
                 {"x-awsmock-target", "lambda"},
                 {"x-awsmock-action", "lambda-runtime-status"},
