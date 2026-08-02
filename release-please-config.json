@@ -3,12 +3,7 @@
   "release-type": "simple",
   "bump-minor-pre-major": true,
   "bump-patch-for-minor-pre-major": true,
-  "version-file": [
-    {
-      "path": "version.txt",
-      "regex": "^(.*)$"
-    }
-  ],
+  "version-file": "version.txt",
   "packages": {
     ".": {}
   }
