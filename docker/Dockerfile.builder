@@ -14,7 +14,8 @@ RUN apk add --no-cache \
 # stricter -W<category> parsing: "warning category error is not known").
 # awsmock-lrt itself requires >= 4.2, so install that separately and use it only
 # for the final awsmock-lrt configure/build below.
-RUN pip3 install cmake --break-system-packages --prefix=/opt/cmake-latest
+RUN python3 -m venv /opt/cmake-latest && \
+    /opt/cmake-latest/bin/pip install cmake
 
 WORKDIR /build
 
