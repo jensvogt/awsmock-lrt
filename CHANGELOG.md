@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.11](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.10...v0.1.11) (2026-08-02)
+
+
+### Bug Fixes
+
+* instance ID not correctly reported ([b3cac24](https://github.com/jensvogt/awsmock-lrt/commit/b3cac249b31276713a3a7377cec2ac2122bd062f))
+* instance ID not correctly reported ([3f09115](https://github.com/jensvogt/awsmock-lrt/commit/3f09115531548ced1b41dcc3786b883b120c5b1b))
+* repair other runtimes to distinguish between stdout and stderr. ([1360cc8](https://github.com/jensvogt/awsmock-lrt/commit/1360cc804974d1e7c7ff812691e03f7c53c7e85a))
+* repair other runtimes to distinguish between stdout and stderr. ([f0ddc45](https://github.com/jensvogt/awsmock-lrt/commit/f0ddc458426c7e04c3a9a6b0ee9297462e3bdc6b))
+
 ## [0.1.10](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.9...v0.1.10) (2026-07-12)
 
 
