@@ -73,6 +73,7 @@ int main(const int argc, char *argv[]) {
     po::options_description desc("awsmock-lrt options", 256);
     // clang-format off
     desc.add_options()("help,h", "Show help message")
+    ("version,V",          "Show application version")
     ("code-path,c",        po::value<std::string>(&codePath)->required(),                              "Path to the Lambda code artifact (JAR, .so, or source directory)")
     ("handler,H",          po::value<std::string>(&handler)->required(),                               "Handler identifier (format depends on runtime)")
     ("function-name,f",    po::value<std::string>(&functionName)->default_value(""),                "Lambda function name")
@@ -99,6 +100,10 @@ int main(const int argc, char *argv[]) {
 
         if (vm.contains("help")) {
             std::cout << desc << '\n';
+            return 0;
+        }
+        if (vm.contains("version")) {
+            std::cout << "awsmock-lrt v" << Awsmock::Core::Configuration::getVersion() << '\n';
             return 0;
         }
         po::notify(vm);

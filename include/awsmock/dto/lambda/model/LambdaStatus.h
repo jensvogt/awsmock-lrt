@@ -50,6 +50,11 @@ namespace Awsmock::Dto::Lambda {
         std::string instanceId;
 
         /**
+         * @brief GRT (LRT) runtime version — set by the GRT before reporting to awsmockmgr
+         */
+        std::string runtimeVersion;
+
+        /**
          * @brief Last start timestamp
          */
         std::chrono::system_clock::time_point lastStart;
@@ -75,6 +80,7 @@ namespace Awsmock::Dto::Lambda {
             r.functionName = Core::Json::GetStringValue(v, "functionName");
             r.port = Core::Json::GetIntValue(v, "port");
             r.instanceId = Core::Json::GetStringValue(v, "instanceId");
+            r.runtimeVersion = Core::Json::GetStringValue(v, "runtimeVersion");
             r.lastStart = Core::Json::GetDatetimeValue(v, "lastStart");
             r.lastStop = Core::Json::GetDatetimeValue(v, "lastStop");
             r.lastInvocation = Core::Json::GetDatetimeValue(v, "lastInvocation");
@@ -90,6 +96,7 @@ namespace Awsmock::Dto::Lambda {
                     {"functionName", obj.functionName},
                     {"port", obj.port},
                     {"instanceId", obj.instanceId},
+                    {"runtimeVersion", obj.runtimeVersion},
                     {"lastStart", Core::DateTimeUtils::ToISO8601(obj.lastStart)},
                     {"lastStop", Core::DateTimeUtils::ToISO8601(obj.lastStop)},
                     {"lastInvocation", Core::DateTimeUtils::ToISO8601(obj.lastInvocation)},

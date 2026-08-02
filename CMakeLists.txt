@@ -1,5 +1,19 @@
 cmake_minimum_required(VERSION 4.2)
-project(awsmocklrt)
+
+# -------------------------------------------------------------------------
+# Read version.txt (kept in sync by release-please via release-please-config.json)
+# -------------------------------------------------------------------------
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/version.txt" VERSION_STRING_RAW)
+string(STRIP "${VERSION_STRING_RAW}" VERSION_STRING)
+
+project(awsmocklrt VERSION ${VERSION_STRING})
+
+include(cmake/ReadVersion.cmake)
+
+# -------------------------------------------------------------------------
+# Current version
+# -------------------------------------------------------------------------
+configure_file(${CMAKE_SOURCE_DIR}/cmake/version.h.in ${CMAKE_SOURCE_DIR}/include/awsmock/core/Version.h)
 
 set(CMAKE_CXX_STANDARD 23)
 set(BINARY awsmocklrt)
