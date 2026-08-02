@@ -1,6 +1,7 @@
 // C++ includes
 #include <cerrno>
 #include <csignal>
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <map>
@@ -59,7 +60,8 @@ int main(const int argc, char *argv[]) {
     std::string nodeExecutable = "node";
     std::string pythonExecutable = "python3";
     std::string managerHost = "host.docker.internal";
-    std::string instanceId = Awsmock::Core::StringUtils::GenerateRandomHexString(8);
+    const char *envInstanceId = std::getenv("AWSMOCK_INSTANCE_ID");
+    std::string instanceId = envInstanceId ? std::string(envInstanceId) : Awsmock::Core::StringUtils::GenerateRandomHexString(8);
 
     int port = 8080;
     int lifetime = 0;
