@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.12](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.11...v0.1.12) (2026-08-02)
+
+
+### Bug Fixes
+
+* add version and CLI options --version ([9a286f8](https://github.com/jensvogt/awsmock-lrt/commit/9a286f80fe3ce9fbc25f693c83c0de14d1bb9dfb))
+* add version and CLI options --version ([1fbb48d](https://github.com/jensvogt/awsmock-lrt/commit/1fbb48d049a1af6ebadcc486acb27b67feb845e7))
+
 ## [0.1.11](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.10...v0.1.11) (2026-08-02)
 
 
