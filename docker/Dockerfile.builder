@@ -4,17 +4,26 @@ ENV VCPKG_FORCE_SYSTEM_BINARIES=1
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
 
 RUN apk add --no-cache \
-    build-base ninja git perl zip unzip curl tar pkgconfig linux-headers bash python3 py3-pip autoconf \
+    build-base cmake ninja git perl zip unzip curl tar pkgconfig linux-headers bash python3 py3-pip autoconf \
     autoconf-archive automake libtool m4 make gettext-dev patch pkgconf ncurses-dev ncurses-terminfo-base \
     coreutils openssl-dev zlib-dev bzip2-dev readline-dev sqlite-dev xz-dev libffi-dev util-linux-dev musl-dev \
     openjdk21-jdk ca-certificates
 
-# Alpine ships CMake < 4.2; get the current release via pip
-RUN pip3 install cmake --break-system-packages
+# Alpine's packaged cmake (< 4.2) builds awsmock/vcpkg: CMake >= 4 breaks vcpkg's
+# mongo-c-driver port (its TRY_COMPILE CMAKE_FLAGS "-Werror ..." trips CMake 4's
+# stricter -W<category> parsing: "warning category error is not known").
+# awsmock-lrt itself requires >= 4.2, so install that separately and use it only
+# for the final awsmock-lrt configure/build below.
+RUN pip3 install cmake --break-system-packages --prefix=/opt/cmake-latest
 
 WORKDIR /build
 
+# Pin the vcpkg tool itself to the same commit as vcpkg.json's builtin-baseline.
+# An unpinned (HEAD) vcpkg tool can drift to scripts requiring newer CMake
+# features (e.g. string(JSON STRING_ENCODE)) than Alpine's packaged cmake
+# provides, breaking the vcpkg install step below.
 RUN git clone https://github.com/microsoft/vcpkg.git && \
+    git -C vcpkg checkout c3867e714dd3a51c272826eea77267876517ed99 && \
     ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
 # Cache-bust when awsmock changes by passing its HEAD SHA as a build arg
@@ -38,10 +47,10 @@ RUN mkdir awsmock-lrt/lib/ && \
     cp awsmock/cmake-build-release/libawsmockdb.a   awsmock-lrt/lib/ && \
     cp awsmock/cmake-build-release/libawsmockdto.a  awsmock-lrt/lib/
 
-RUN cmake -B awsmock-lrt/cmake-build-release -S awsmock-lrt \
+RUN /opt/cmake-latest/bin/cmake -B awsmock-lrt/cmake-build-release -S awsmock-lrt \
         -DCMAKE_BUILD_TYPE=Release \
         -DAWSMOCK_VCPKG_DIR=/build/awsmock/cmake-build-release/vcpkg_installed/x64-linux-release \
         -DJAVA_HOME=/usr/lib/jvm/java-21-openjdk \
         -G Ninja && \
-    cmake --build awsmock-lrt/cmake-build-release --parallel
+    /opt/cmake-latest/bin/cmake --build awsmock-lrt/cmake-build-release --parallel
 
