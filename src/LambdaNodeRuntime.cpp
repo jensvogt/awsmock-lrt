@@ -22,6 +22,12 @@ namespace Awsmock::Lrt {
 'use strict';
 const path = require('path');
 
+// Capture the real stdout writer before anything (including third-party logging
+// libraries) can grab a reference to process.stdout and write through it. The
+// shim's own protocol response is the only thing allowed to reach the real stdout
+// pipe read by the C++ parent's readLine(); everything else must go to stderr.
+const realStdoutWrite = process.stdout.write.bind(process.stdout);
+
 // Redirect all console output to stderr so only the handler return value goes to stdout.
 // The real Lambda runtime sends console.log to CloudWatch Logs, not the invocation response.
 const stderrWrite = (...args) => process.stderr.write(args.map(String).join(' ') + '\n');
@@ -30,6 +36,12 @@ console.info  = stderrWrite;
 console.warn  = stderrWrite;
 console.error = stderrWrite;
 console.debug = stderrWrite;
+
+// Some libraries (e.g. aws-lambda-powertools Logger) build their own Console bound
+// directly to process.stdout, bypassing the console.* patch above entirely. Patching
+// the stream's write method itself catches those too, since they hold the same
+// process.stdout object reference.
+process.stdout.write = process.stderr.write.bind(process.stderr);
 
 const codePath = process.argv[2];
 const handlerExpr = process.argv[3];
@@ -54,13 +66,13 @@ process.stdin.on('data', chunk => {
         if (!line.trim()) continue;
         let event;
         try { event = JSON.parse(line); } catch(e) {
-            process.stdout.write(JSON.stringify({ error: 'parse error: ' + e.message }) + '\n');
+            realStdoutWrite(JSON.stringify({ error: 'parse error: ' + e.message }) + '\n');
             continue;
         }
         Promise.resolve()
             .then(() => handlerFn(event, {}))
-            .then(r  => process.stdout.write(JSON.stringify(r !== undefined ? r : null) + '\n'))
-            .catch(e => process.stdout.write(JSON.stringify({ error: e.message || String(e) }) + '\n'));
+            .then(r  => realStdoutWrite(JSON.stringify(r !== undefined ? r : null) + '\n'))
+            .catch(e => realStdoutWrite(JSON.stringify({ error: e.message || String(e) }) + '\n'));
     }
 });
 process.stdin.on('end', () => process.exit(0));
