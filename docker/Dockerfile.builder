@@ -9,13 +9,16 @@ RUN apk add --no-cache \
     coreutils openssl-dev zlib-dev bzip2-dev readline-dev sqlite-dev xz-dev libffi-dev util-linux-dev musl-dev \
     openjdk21-jdk ca-certificates
 
-# Alpine's packaged cmake (< 4.2) builds awsmock/vcpkg: CMake >= 4 breaks vcpkg's
-# mongo-c-driver port (its TRY_COMPILE CMAKE_FLAGS "-Werror ..." trips CMake 4's
-# stricter -W<category> parsing: "warning category error is not known").
-# awsmock-lrt itself requires >= 4.2, so install that separately and use it only
-# for the final awsmock-lrt configure/build below.
+# Alpine's packaged cmake (3.31) is too old for both awsmock-lrt (requires
+# >= 4.2) and current vcpkg registry commits, whose scripts use
+# string(JSON ... STRING_ENCODE) — a mode CMake only gained after 3.31.
+# Install a recent cmake via pip and put it first on PATH for every cmake and
+# vcpkg invocation below. (vcpkg's mongo-c-driver port used to break under
+# CMake >= 4's stricter TRY_COMPILE flag parsing, but that's fixed upstream
+# via a cmake-4.4.patch as of the baseline this project tracks.)
 RUN python3 -m venv /opt/cmake-latest && \
     /opt/cmake-latest/bin/pip install cmake
+ENV PATH="/opt/cmake-latest/bin:${PATH}"
 
 WORKDIR /build
 
@@ -51,10 +54,10 @@ RUN mkdir -p awsmock-lrt/lib/ && \
     cp awsmock/cmake-build-release/libawsmockdb.a   awsmock-lrt/lib/ && \
     cp awsmock/cmake-build-release/libawsmockdto.a  awsmock-lrt/lib/
 
-RUN /opt/cmake-latest/bin/cmake -B awsmock-lrt/cmake-build-release -S awsmock-lrt \
+RUN cmake -B awsmock-lrt/cmake-build-release -S awsmock-lrt \
         -DCMAKE_BUILD_TYPE=Release \
         -DAWSMOCK_VCPKG_DIR=/build/awsmock/cmake-build-release/vcpkg_installed/x64-linux-release \
         -DJAVA_HOME=/usr/lib/jvm/java-21-openjdk \
         -G Ninja && \
-    /opt/cmake-latest/bin/cmake --build awsmock-lrt/cmake-build-release --parallel
+    cmake --build awsmock-lrt/cmake-build-release --parallel
 
