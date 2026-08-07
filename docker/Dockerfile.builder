@@ -32,6 +32,14 @@ ARG AWSMOCK_REV=HEAD
 RUN git clone https://github.com/jensvogt/awsmock.git awsmock && \
     if [ "$AWSMOCK_REV" != "HEAD" ]; then git -C awsmock checkout "$AWSMOCK_REV"; fi
 
+# awsmock's own vcpkg.json can pin a builtin-baseline newer than what was
+# present when the vcpkg tool clone above was cached (that layer's git
+# history is frozen at cache time, not re-fetched on later builds). Fetch
+# that specific commit so vcpkg can resolve it even from a stale cache,
+# without forcing a full vcpkg re-clone/rebuild.
+RUN baseline=$(grep -oE '"builtin-baseline"[[:space:]]*:[[:space:]]*"[a-f0-9]{40}"' awsmock/vcpkg.json | grep -oE '[a-f0-9]{40}') && \
+    git -C vcpkg fetch origin "$baseline"
+
 RUN cmake -B awsmock/cmake-build-release -S awsmock \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_TOOLCHAIN_FILE=/build/vcpkg/scripts/buildsystems/vcpkg.cmake \
