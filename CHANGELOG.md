@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.14](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.13...v0.1.14) (2026-08-07)
+
+
+### Bug Fixes
+
+* new nodesJS shin stderr/stdeout handling ([29014e7](https://github.com/jensvogt/awsmock-lrt/commit/29014e7dcaa6f2f33826edb9ef14cc1defd7498e))
+
 ## [0.1.13](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.12...v0.1.13) (2026-08-07)
 
 
