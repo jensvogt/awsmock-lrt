@@ -19,26 +19,21 @@ RUN python3 -m venv /opt/cmake-latest && \
 
 WORKDIR /build
 
-# Pin the vcpkg tool itself to the same commit as vcpkg.json's builtin-baseline.
-# An unpinned (HEAD) vcpkg tool can drift to scripts requiring newer CMake
-# features (e.g. string(JSON STRING_ENCODE)) than Alpine's packaged cmake
-# provides, breaking the vcpkg install step below.
-RUN git clone https://github.com/microsoft/vcpkg.git && \
-    git -C vcpkg checkout c3867e714dd3a51c272826eea77267876517ed99 && \
-    ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
-
 # Cache-bust when awsmock changes by passing its HEAD SHA as a build arg
 ARG AWSMOCK_REV=HEAD
 RUN git clone https://github.com/jensvogt/awsmock.git awsmock && \
     if [ "$AWSMOCK_REV" != "HEAD" ]; then git -C awsmock checkout "$AWSMOCK_REV"; fi
 
-# awsmock's own vcpkg.json can pin a builtin-baseline newer than what was
-# present when the vcpkg tool clone above was cached (that layer's git
-# history is frozen at cache time, not re-fetched on later builds). Fetch
-# that specific commit so vcpkg can resolve it even from a stale cache,
-# without forcing a full vcpkg re-clone/rebuild.
+# Pin the vcpkg tool to the exact commit awsmock's own vcpkg.json declares as
+# its builtin-baseline, so the ports/versions registry data and the vcpkg
+# scripts executing the install come from the same consistent snapshot. A
+# fixed, hardcoded commit here drifts behind upstream awsmock's baseline and
+# fails with "no version database entry for <port> at <version>" once awsmock
+# requests package versions newer than that commit's registry knows about.
 RUN baseline=$(grep -oE '"builtin-baseline"[[:space:]]*:[[:space:]]*"[a-f0-9]{40}"' awsmock/vcpkg.json | grep -oE '[a-f0-9]{40}') && \
-    git -C vcpkg fetch origin "$baseline"
+    git clone https://github.com/microsoft/vcpkg.git && \
+    git -C vcpkg checkout "$baseline" && \
+    ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
 RUN cmake -B awsmock/cmake-build-release -S awsmock \
         -DCMAKE_BUILD_TYPE=Release \
