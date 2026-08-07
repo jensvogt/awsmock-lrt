@@ -81,9 +81,19 @@ namespace Awsmock::Lrt {
 
         const auto t0 = std::chrono::steady_clock::now();
 
+        // write() on a pipe is not guaranteed to send the whole buffer in one call; a short
+        // write here would leave an unterminated fragment in the child's stdin buffer that
+        // gets glued to the next invocation's bytes, corrupting both. Loop until it's all sent.
         const std::string line = eventJson + "\n";
-        if (const ssize_t written = write(_stdinFd, line.data(), line.size()); written < 0)
-            throw std::runtime_error(std::string("write to subprocess stdin failed: ") + strerror(errno));
+        size_t offset = 0;
+        while (offset < line.size()) {
+            const ssize_t written = write(_stdinFd, line.data() + offset, line.size() - offset);
+            if (written < 0) {
+                if (errno == EINTR) continue;
+                throw std::runtime_error(std::string("write to subprocess stdin failed: ") + strerror(errno));
+            }
+            offset += static_cast<size_t>(written);
+        }
 
         const std::string result = readLine();
 
