@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.1.15](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.14...v0.1.15) (2026-08-08)
+
+
+### Bug Fixes
+
+* switch to Amazon-linux ([366cf06](https://github.com/jensvogt/awsmock-lrt/commit/366cf068b89acaf9339f02009ecb29143f09606f))
+* switch to Amazon-linux ([f19a993](https://github.com/jensvogt/awsmock-lrt/commit/f19a99329e0a48949b8d65fdadf23b543659be00))
+* switch to Amazon-linux ([711a2ff](https://github.com/jensvogt/awsmock-lrt/commit/711a2ffe08c447d886a5dbc343f1ba4943ad006e))
+
+## [0.1.14](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.13...v0.1.14) (2026-08-07)
+
+
+### Bug Fixes
+
+* new nodesJS shin stderr/stdeout handling ([29014e7](https://github.com/jensvogt/awsmock-lrt/commit/29014e7dcaa6f2f33826edb9ef14cc1defd7498e))
+
+## [0.1.13](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.12...v0.1.13) (2026-08-07)
+
+
+### Bug Fixes
+
+* new nodesJS shin stderr/stdeout handling ([3189bef](https://github.com/jensvogt/awsmock-lrt/commit/3189bef2c13cc64e5332ff1c1ea16198d41b0a31))
+* new nodesJS shin stderr/stdeout handling ([04d646d](https://github.com/jensvogt/awsmock-lrt/commit/04d646d285ffc1f3d06c0acf60cee6e626acd744))
+* new nodesJS shin stderr/stdeout handling ([d55b5ec](https://github.com/jensvogt/awsmock-lrt/commit/d55b5ec1eb15afba7cd0351d777bfc4c31d0a322))
+* new nodesJS shin stderr/stdeout handling ([8300946](https://github.com/jensvogt/awsmock-lrt/commit/83009466fbc91661392338a8874eb1e536034b1a))
+* new nodesJS shin stderr/stdeout handling ([ee4e1b5](https://github.com/jensvogt/awsmock-lrt/commit/ee4e1b5e588d6eb04b4e8ed5f453285ca8b8c6a4))
+* new nodesJS shin stderr/stdeout handling ([58eb7b3](https://github.com/jensvogt/awsmock-lrt/commit/58eb7b3fc877817a6e6561a21fd380757d5f93c3))
+* new nodesJS shin stderr/stdeout handling ([5bf43b8](https://github.com/jensvogt/awsmock-lrt/commit/5bf43b81b787315cf59980d3539ee4d00571dfc7))
+* use modern CMake for the whole awsmock vcpkg build ([ec67ef8](https://github.com/jensvogt/awsmock-lrt/commit/ec67ef83dbd886a05ac20ffd6c52a30500bde082))
+* use modern CMake for the whole awsmock vcpkg build, not just awsmock-lrt ([b62c3ec](https://github.com/jensvogt/awsmock-lrt/commit/b62c3ec5c8e9fb1d75a2637fc491e6137ee1a74d))
+
 ## [0.1.12](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.11...v0.1.12) (2026-08-02)
 
 
