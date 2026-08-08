@@ -82,3 +82,12 @@ target_link_directories(${BINARY} PRIVATE lib)
 target_link_libraries(${BINARY} PRIVATE ${JNI_LIBRARIES} awsmockcore awsmockdto awsmockdb OpenSSL::SSL OpenSSL::Crypto
         Boost::program_options Boost::json Boost::log Boost::log_setup Boost::program_options Boost::process Boost::url
         Threads::Threads ${CMAKE_DL_LIBS})
+
+# The builder's gcc14 (needed for C++23 features) produces a binary requiring
+# GLIBCXX symbols newer than what some runtime images' system libstdc++ ships
+# (e.g. Debian 12/bookworm, used by the node:* base images). libjvm.so must
+# stay dynamic (no JDK ships a static one), but libstdc++/libgcc do have
+# static archives, so embed those to decouple from the target's toolchain age.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(${BINARY} PRIVATE -static-libstdc++ -static-libgcc)
+endif()
