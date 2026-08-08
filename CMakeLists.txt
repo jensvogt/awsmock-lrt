@@ -66,7 +66,7 @@ if(WIN32)
     endforeach()
 endif()
 
-find_package(JNI REQUIRED)
+find_package(JNI REQUIRED COMPONENTS JVM)
 find_package(Boost CONFIG REQUIRED COMPONENTS program_options json log log_setup process url)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
