@@ -3,7 +3,7 @@ FROM amazonlinux:2023
 ENV JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto
 
 RUN dnf install -y \
-    gcc gcc-c++ gcc14 gcc14-c++ make cmake ninja-build git perl zip unzip tar pkgconf-pkg-config kernel-headers bash \
+    gcc gcc-c++ gcc14 gcc14-c++ gcc14-libstdc++-static make cmake ninja-build git perl zip unzip tar pkgconf-pkg-config kernel-headers bash \
     python3 python3-pip autoconf autoconf271 autoconf-archive automake libtool m4 gettext-devel patch \
     ncurses-devel openssl-devel zlib-devel bzip2-devel readline-devel sqlite-devel \
     xz-devel libffi-devel libuuid-devel java-21-amazon-corretto-devel ca-certificates \
