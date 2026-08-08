@@ -20,7 +20,9 @@ namespace Awsmock::Lrt {
     // Inline shim: argv[2]=codePath argv[3]=handler ("file.fn")
     static constexpr auto NODE_SHIM = R"JS(
 'use strict';
+const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 
 // Capture the real stdout writer before anything (including third-party logging
 // libraries) can grab a reference to process.stdout and write through it. The
@@ -49,33 +51,61 @@ const dot = handlerExpr.lastIndexOf('.');
 if (dot < 0) { process.stderr.write('Invalid handler: ' + handlerExpr + '\n'); process.exit(1); }
 const moduleName = handlerExpr.slice(0, dot);
 const fnName = handlerExpr.slice(dot + 1);
-const mod = require(path.resolve(codePath, moduleName));
-const handlerFn = mod[fnName];
-if (typeof handlerFn !== 'function') {
-    process.stderr.write('Handler not found: ' + handlerExpr + '\n');
-    process.exit(1);
-}
-process.stdin.setEncoding('utf8');
-let buf = '';
-process.stdin.on('data', chunk => {
-    buf += chunk;
-    let nl;
-    while ((nl = buf.indexOf('\n')) !== -1) {
-        const line = buf.slice(0, nl);
-        buf = buf.slice(nl + 1);
-        if (!line.trim()) continue;
-        let event;
-        try { event = JSON.parse(line); } catch(e) {
-            realStdoutWrite(JSON.stringify({ error: 'parse error: ' + e.message }) + '\n');
-            continue;
+
+// require.resolve()'s default extension list is only .js/.json/.node — it never
+// finds a .mjs file, so ESM handlers (real Lambda supports .js+"type":"module",
+// .mjs, and .cjs) need their own probe here. A .js file that turns out to contain
+// ESM syntax still resolves via require.resolve, but require() on it throws
+// ERR_REQUIRE_ESM at load time; that case is handled by retrying with import().
+async function loadHandler() {
+    const base = path.resolve(codePath, moduleName);
+    const candidates = [base, base + '.js', base + '.cjs', base + '.mjs', base + '.json',
+        path.join(base, 'index.js'), path.join(base, 'index.cjs'), path.join(base, 'index.mjs')];
+    const modulePath = candidates.find(p => { try { return fs.statSync(p).isFile(); } catch { return false; } });
+    if (!modulePath) throw new Error('Cannot find handler module: ' + base);
+
+    let mod;
+    if (modulePath.endsWith('.mjs')) {
+        mod = await import(pathToFileURL(modulePath).href);
+    } else {
+        try {
+            mod = require(modulePath);
+        } catch (e) {
+            if (e.code !== 'ERR_REQUIRE_ESM') throw e;
+            mod = await import(pathToFileURL(modulePath).href);
         }
-        Promise.resolve()
-            .then(() => handlerFn(event, {}))
-            .then(r  => realStdoutWrite(JSON.stringify(r !== undefined ? r : null) + '\n'))
-            .catch(e => realStdoutWrite(JSON.stringify({ error: e.message || String(e) }) + '\n'));
     }
+    const handlerFn = mod[fnName] || (mod.default && mod.default[fnName]);
+    if (typeof handlerFn !== 'function') throw new Error('Handler not found: ' + handlerExpr);
+    return handlerFn;
+}
+
+loadHandler().then(handlerFn => {
+    process.stdin.setEncoding('utf8');
+    let buf = '';
+    process.stdin.on('data', chunk => {
+        buf += chunk;
+        let nl;
+        while ((nl = buf.indexOf('\n')) !== -1) {
+            const line = buf.slice(0, nl);
+            buf = buf.slice(nl + 1);
+            if (!line.trim()) continue;
+            let event;
+            try { event = JSON.parse(line); } catch(e) {
+                realStdoutWrite(JSON.stringify({ error: 'parse error: ' + e.message }) + '\n');
+                continue;
+            }
+            Promise.resolve()
+                .then(() => handlerFn(event, {}))
+                .then(r  => realStdoutWrite(JSON.stringify(r !== undefined ? r : null) + '\n'))
+                .catch(e => realStdoutWrite(JSON.stringify({ error: e.message || String(e) }) + '\n'));
+        }
+    });
+    process.stdin.on('end', () => process.exit(0));
+}).catch(e => {
+    process.stderr.write('Failed to load handler ' + handlerExpr + ': ' + (e && e.stack ? e.stack : String(e)) + '\n');
+    process.exit(1);
 });
-process.stdin.on('end', () => process.exit(0));
 )JS";
 
     LambdaNodeRuntime::LambdaNodeRuntime(const std::string &codePath,const std::string &handler,const std::map<std::string, std::string> &envVars,const std::string &nodeExecutable) {
