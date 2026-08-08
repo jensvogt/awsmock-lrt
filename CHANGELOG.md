@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.18](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.17...v0.1.18) (2026-08-08)
+
+
+### Bug Fixes
+
+* switch to Amazon-linux ([2b77947](https://github.com/jensvogt/awsmock-lrt/commit/2b77947f871f8a3691d0a8ea752b1fca47aa3e6e))
+* switch to Amazon-linux ([78335d8](https://github.com/jensvogt/awsmock-lrt/commit/78335d84573d7f8b37f4b171cd596c774ba6174b))
+* switch to Amazon-linux ([01dd79f](https://github.com/jensvogt/awsmock-lrt/commit/01dd79fe3d7b1405e913bff61dd8126c2f833255))
+
 ## [0.1.17](https://github.com/jensvogt/awsmock-lrt/compare/v0.1.16...v0.1.17) (2026-08-08)
 
 
